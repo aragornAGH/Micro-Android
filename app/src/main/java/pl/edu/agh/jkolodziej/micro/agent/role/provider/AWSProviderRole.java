@@ -48,31 +48,6 @@ public class AWSProviderRole extends DefaultSocialRole {
         Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
         responseToClient.putExtra(CLASS_INTENT_MAP.get(message.getIntent().getClass()), intent);
         LocalBroadcastManager.getInstance(context).sendBroadcast(responseToClient);
-//        if (message.getIntent().getClass().equals(AddIntent.class)) {
-//            AddIntent intentFromMessage = message.getIntent();
-//            intentFromMessage.setWorker("AWS");
-//            Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
-//            responseToClient.putExtra("addIntent", intentFromMessage);
-//            LocalBroadcastManager.getInstance(context).sendBroadcast(responseToClient);
-//        } else if (message.getIntent().getClass().equals(AddingFromFileIntent.class)) {
-//            AddingFromFileIntent intentFromMessage = message.getIntent();
-//            intentFromMessage.setWorker("AWS");
-//            Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
-//            responseToClient.putExtra("addingFromFileIntent", intentFromMessage);
-//            LocalBroadcastManager.getInstance(context).sendBroadcast(responseToClient);
-//        } else if (message.getIntent().getClass().equals(ConvertPngToPDFIntent.class)) {
-//            ConvertPngToPDFIntent intentFromMessage = message.getIntent();
-//            intentFromMessage.setWorker("AWS");
-//            Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
-//            responseToClient.putExtra("convertingPNGToPDF", intentFromMessage);
-//            LocalBroadcastManager.getInstance(context).sendBroadcast(responseToClient);
-//        } else if (message.getIntent().getClass().equals(OCRIntent.class)) {
-//            OCRIntent intentFromMessage = message.getIntent();
-//            intentFromMessage.setWorker("AWS");
-//            Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
-//            responseToClient.putExtra("OCR", intentFromMessage);
-//            LocalBroadcastManager.getInstance(context).sendBroadcast(responseToClient);
-//        }
     }
 
     @Override

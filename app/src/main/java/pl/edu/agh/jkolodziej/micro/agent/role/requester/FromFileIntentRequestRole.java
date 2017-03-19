@@ -48,32 +48,14 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
 
     public void startAddingFromFile() throws Exception {
         setDataAndSendMessage(new AddingFromFileIntent());
-//        MicroMessage message = new MicroMessage();
-//        AddingFromFileIntent intent = new AddingFromFileIntent();
-//        intent.setData(CipherDataHelper.encryptByteArray(bytes));
-//        intent.setStartTime(System.nanoTime());
-//        message.setIntent(intent);
-//        sendGlobalBroadcast(message);
     }
 
     public void startPNGToPDF() throws Exception {
         setDataAndSendMessage(new ConvertPngToPDFIntent());
-//        MicroMessage message = new MicroMessage();
-//        ConvertPngToPDFIntent intent = new ConvertPngToPDFIntent();
-//        intent.setData(CipherDataHelper.encryptByteArray(bytes));
-//        intent.setStartTime(System.nanoTime());
-//        message.setIntent(intent);
-//        sendGlobalBroadcast(message);
     }
 
     public void startOCR() throws Exception {
         setDataAndSendMessage(new OCRIntent());
-//        MicroMessage message = new MicroMessage();
-//        OCRIntent intent = new OCRIntent();
-//        intent.setData(CipherDataHelper.encryptByteArray(bytes));
-//        intent.setStartTime(System.nanoTime());
-//        message.setIntent(intent);
-//        sendGlobalBroadcast(message);
     }
 
     @Override
