@@ -42,6 +42,7 @@ import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.OCRHelper;
 import pl.edu.agh.jkolodziej.micro.agent.service.ExampleService;
+import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -195,12 +196,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         try {
             MicroBootProperties.readConfiguration();
         } catch (Exception e) {
             Logger.getAnonymousLogger().log(Level.WARNING, "Fail during reading properties");
         }
+
+        PowerTutorFacade powerTutorFacade = PowerTutorFacade.getInstance(this, "energy");
+        powerTutorFacade.startPowerTutor();
+        PowerTutorFacade.getInstance(this, "energy").bindService();
     }
 
     public class ResponseFromServiceReceiver extends BroadcastReceiver {
@@ -217,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
             String worker = intent.getStringExtra("worker");
             String result = intent.getStringExtra("result");
             Long nanoSeconds = intent.getLongExtra("duration", 0L);
+            Double batteryPercentage = intent.getDoubleExtra("batteryPercentage", 0.0);
             IntentType intentType = (IntentType) intent.getSerializableExtra("intentType");
             Boolean provRun = intent.getBooleanExtra("provider_run", false);
             Boolean provAWSRun = intent.getBooleanExtra("provider_aws_run", false);
@@ -230,8 +235,9 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(mContext, "Provider AWS wystartował ;-)", Toast.LENGTH_SHORT).show();
                     providerAWSRun = true;
                 } else {
-                    Toast.makeText(mContext, intentType + " - " + worker + " - " + result + " " + (nanoSeconds / Math.pow(10.0, 6)) + "ms", Toast.LENGTH_SHORT).show();
-                    results.add(intentType + " - " + worker + " - " + (nanoSeconds / Math.pow(10.0, 6)) + "ms");
+                    Toast.makeText(mContext, intentType + " - " + worker + " - " + result + " " + (nanoSeconds / Math.pow(10.0, 6)) + "ms; battery " +
+                            batteryPercentage + "%", Toast.LENGTH_SHORT).show();
+                    results.add(intentType + " - " + worker + " - " + (nanoSeconds / Math.pow(10.0, 6)) + "ms; battery: " + batteryPercentage + "%");
                     ListView list = (ListView) findViewById(R.id.listView);
                     adapter = new ArrayAdapter<String>(mContext, R.layout.row_list_view, results);
                     list.setAdapter(adapter);

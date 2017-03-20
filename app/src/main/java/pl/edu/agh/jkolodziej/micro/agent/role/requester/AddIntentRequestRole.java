@@ -10,9 +10,11 @@ import org.nzdis.micro.MicroMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import pl.edu.agh.jkolodziej.micro.agent.PowerTutorHelper;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddIntent;
+import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 /**
  * @author - Jakub Kołodziej
@@ -40,6 +42,7 @@ public class AddIntentRequestRole extends DefaultSocialRole {
         AddIntent intent = new AddIntent();
         intent.setData(sub1 + ";" + sub2);
         intent.setStartTime(System.nanoTime());
+        intent.setStartBattery(PowerTutorFacade.getInstance(mContext, "energy").getTotalPowerForUid());
         message.setIntent(intent);
         sendGlobalBroadcast(message);
     }
@@ -53,7 +56,8 @@ public class AddIntentRequestRole extends DefaultSocialRole {
         Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
         responseToClient.putExtra("worker", worker);
         responseToClient.putExtra("result", result);
-        responseToClient.putExtra("duration", System.nanoTime() - ((AddIntent) message.getIntent()).getStartTime());
+        responseToClient.putExtra("duration", System.nanoTime() - intent.getStartTime());
+        responseToClient.putExtra("batteryPercentage", PowerTutorHelper.getPercentageUsageOfBattery(mContext, intent.getStartBattery()));
         responseToClient.putExtra("intentType", IntentType.ADDING);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(responseToClient);
     }

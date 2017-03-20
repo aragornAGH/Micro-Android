@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunctionException;
 
+import pl.edu.agh.jkolodziej.micro.agent.PowerTutorHelper;
 import pl.edu.agh.jkolodziej.micro.agent.R;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
@@ -16,6 +17,7 @@ import pl.edu.agh.jkolodziej.micro.agent.intents.AddIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
+import pl.edu.agh.jkolodziej.micro.agent.intents.ServiceIntent;
 
 /**
  * Created by Kołacz.
@@ -37,7 +39,7 @@ public class AWSLambdaRequester {
 
                 @Override
                 protected void onPostExecute(AddIntent result) {
-                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.ADDING, result.getWorker(), System.nanoTime() - result.getStartTime(), list);
+                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.ADDING, list);
                 }
             }.execute(addIntent);
             return true;
@@ -56,7 +58,7 @@ public class AWSLambdaRequester {
 
                 @Override
                 protected void onPostExecute(AddingFromFileIntent result) {
-                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.ADDING_FROM_FILE, result.getWorker(), System.nanoTime() - result.getStartTime(), list);
+                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.ADDING_FROM_FILE, list);
                 }
             }.execute(addingFromFileIntent);
             return true;
@@ -74,7 +76,7 @@ public class AWSLambdaRequester {
 
                 @Override
                 protected void onPostExecute(ConvertPngToPDFIntent result) {
-                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.PNG_TO_PDF, result.getWorker(), System.nanoTime() - result.getStartTime(), list);
+                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.PNG_TO_PDF, list);
                 }
             }.execute(addingFromFileIntent);
             return true;
@@ -92,7 +94,7 @@ public class AWSLambdaRequester {
 
                 @Override
                 protected void onPostExecute(OCRIntent result) {
-                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.OCR, result.getWorker(), System.nanoTime() - result.getStartTime(), list);
+                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.OCR, list);
                 }
             }.execute(addingFromFileIntent);
             return true;
@@ -101,12 +103,14 @@ public class AWSLambdaRequester {
     }
 
 
-    public static void onPostExecute(org.nzdis.micro.Intent result, Context mContext, IntentType intentType, String worker, Long durationNanoSeconds, ListView list) {
+    public static void onPostExecute(ServiceIntent result, Context mContext, IntentType intentType, ListView list) {
         if (result == null) {
             return;
         }
-        Toast.makeText(mContext, intentType + " - " + worker + " - " + durationNanoSeconds / Math.pow(10.0, 6) + " ms", Toast.LENGTH_SHORT).show();
-        MainActivity.results.add(intentType + " - " + worker + " - " + durationNanoSeconds / Math.pow(10.0, 6) + " ms");
+        Long duration = System.nanoTime() - result.getStartTime();
+        Double batteryPercentage = PowerTutorHelper.getPercentageUsageOfBattery(mContext, result.getStartBattery());
+        Toast.makeText(mContext, intentType + " - " + result.getWorker() + " - " + duration / Math.pow(10.0, 6) + " ms; battery: " + batteryPercentage + "%", Toast.LENGTH_SHORT).show();
+        MainActivity.results.add(intentType + " - " + result.getWorker() + " - " + duration / Math.pow(10.0, 6) + " ms; battery: " + batteryPercentage + "%");
         MainActivity.adapter = new ArrayAdapter<String>(mContext, R.layout.row_list_view, MainActivity.results);
         list.setAdapter(MainActivity.adapter);
         list.refreshDrawableState();
