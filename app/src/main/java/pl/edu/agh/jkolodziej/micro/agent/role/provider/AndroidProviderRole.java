@@ -24,10 +24,10 @@ public class AndroidProviderRole extends ProviderRole {
         if (reply.getIntent() == null) {
             if (message.getIntent().getClass().equals(OCRIntent.class)) {
                 OCRIntent intent = message.getIntent();
+                intent.setWorker(workerName);
                 AndroidOCRWrapper ocrWrapper = new AndroidOCRWrapper(intent);
                 ocrWrapper.makeService();
                 intent = ocrWrapper.getOcrIntent();
-                intent.setWorker(workerName);
                 reply.setIntent(intent);
             }
         }

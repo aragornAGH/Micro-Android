@@ -1,1 +1,1 @@
-include ':app', ':ocr', ':power_tutor'
+include ':app', ':ocr', ':power_tutor', ':machine-learning'

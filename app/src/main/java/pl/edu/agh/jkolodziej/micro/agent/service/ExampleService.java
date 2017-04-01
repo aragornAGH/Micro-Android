@@ -47,7 +47,7 @@ public class ExampleService extends IntentService {
         Action action = (Action) intent.getSerializableExtra("action");
         IntentType intentType = (IntentType) intent.getSerializableExtra("intentType");
         if (Action.RUN_PROVIDER == action) {
-            SystemAgentLoader.newAgent(new AndroidProviderRole("Android Test"), "provider-android");
+            SystemAgentLoader.newAgent(new AndroidProviderRole("android"), "provider-android");
             Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
             responseToClient.putExtra("provider_run", true);
             LocalBroadcastManager.getInstance(this).sendBroadcast(responseToClient);

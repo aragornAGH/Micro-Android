@@ -2,6 +2,8 @@ package pl.edu.agh.jkolodziej.micro.agent.role.requester;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.common.collect.Maps;
@@ -16,7 +18,10 @@ import java.util.logging.Logger;
 import pl.edu.agh.jkolodziej.micro.agent.PowerTutorHelper;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
+import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.CipherDataHelper;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.ConnectionTypeHelper;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.IntentParametersHelper;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
@@ -51,25 +56,36 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
     protected void release() {
     }
 
-    private void setDataAndSendMessage(ServiceIntent intent) throws Exception {
+    private void setDataAndSendMessage(ServiceIntent intent, TaskType taskType) throws Exception {
         MicroMessage message = new MicroMessage();
         intent.setData(CipherDataHelper.encryptByteArray(bytes));
         intent.setStartTime(System.nanoTime());
         intent.setStartBattery(PowerTutorFacade.getInstance(mContext, "energy").getTotalPowerForUid());
+        intent.setConnectionType(ConnectionTypeHelper.getConnectionType(mContext));
+        if (((WifiManager) mContext.getSystemService(Context.WIFI_SERVICE)).isWifiEnabled()) {
+            WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+            int numberOfLevels = 1000;
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            intent.setWifiPowerSignal(WifiManager.calculateSignalLevel(wifiInfo.getRssi(), numberOfLevels));
+        } else {
+            intent.setWifiPowerSignal(0);
+        }
+        intent.setTaskType(taskType);
+        IntentParametersHelper.setFromFileIntentParameters(intent, bytes);
         message.setIntent(intent);
         sendGlobalBroadcast(message);
     }
 
     public void startAddingFromFile() throws Exception {
-        setDataAndSendMessage(new AddingFromFileIntent());
+        setDataAndSendMessage(new AddingFromFileIntent(), TaskType.OCR);
     }
 
     public void startPNGToPDF() throws Exception {
-        setDataAndSendMessage(new ConvertPngToPDFIntent());
+        setDataAndSendMessage(new ConvertPngToPDFIntent(), TaskType.PNG_TO_PDF);
     }
 
     public void startOCR() throws Exception {
-        setDataAndSendMessage(new OCRIntent());
+        setDataAndSendMessage(new OCRIntent(), TaskType.OCR);
     }
 
     @Override
@@ -86,34 +102,6 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
         responseToClient.putExtra("batteryPercentage", PowerTutorHelper.getPercentageUsageOfBattery(mContext, intent.getStartBattery()));
         responseToClient.putExtra("intentType", CLASS_INTENT_MAP.get(message.getIntent().getClass()));
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(responseToClient);
-
-//        if (message.getIntent().getClass().equals(AddingFromFileIntent.class)) {
-//            String worker = ((AddingFromFileIntent) message.getIntent()).getWorker();
-//            String result = ((AddingFromFileIntent) message.getIntent()).getResult();
-//            Logger.getAnonymousLogger().log(Level.INFO, worker + ": " + result);
-//            Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
-//            responseToClient.putExtra("worker", worker);
-//            responseToClient.putExtra("result", result.toString());
-//            responseToClient.putExtra("duration", System.nanoTime() - ((AddingFromFileIntent) message.getIntent()).getStartTime());
-//            responseToClient.putExtra("intentType", IntentType.ADDING_FROM_FILE);
-//            LocalBroadcastManager.getInstance(mContext).sendBroadcast(responseToClient);
-//        } else if (message.getIntent().getClass().equals(ConvertPngToPDFIntent.class)) {
-//            String worker = ((ConvertPngToPDFIntent) message.getIntent()).getWorker();
-//            Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
-//            responseToClient.putExtra("worker", worker);
-//            responseToClient.putExtra("result", "Done ;-)");
-//            responseToClient.putExtra("duration", System.nanoTime() - ((ConvertPngToPDFIntent) message.getIntent()).getStartTime());
-//            responseToClient.putExtra("intentType", IntentType.PNG_TO_PDF);
-//            LocalBroadcastManager.getInstance(mContext).sendBroadcast(responseToClient);
-//        } else if (message.getIntent().getClass().equals(OCRIntent.class)) {
-//            String worker = ((OCRIntent) message.getIntent()).getWorker();
-//            Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
-//            responseToClient.putExtra("worker", worker);
-//            responseToClient.putExtra("result", ((OCRIntent) message.getIntent()).getResult());
-//            responseToClient.putExtra("duration", System.nanoTime() - ((OCRIntent) message.getIntent()).getStartTime());
-//            responseToClient.putExtra("intentType", IntentType.OCR);
-//            LocalBroadcastManager.getInstance(mContext).sendBroadcast(responseToClient);
-//        }
     }
 
     public byte[] getBytes() {

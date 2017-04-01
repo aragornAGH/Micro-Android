@@ -10,11 +10,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import pl.edu.agh.jkolodziej.micro.agent.OcrBackgroundTask;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AWSFileKeeper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.CipherDataHelper;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
-import pl.edu.agh.jkolodziej.micro.agent.OcrBackgroundTask;
 
 import static org.nzdis.micro.bootloader.MicroBootProperties.bootProperties;
 
@@ -46,6 +46,7 @@ public class AndroidOCRWrapper {
             tmpFile = new File(filePath + String.format(TMP_FILENAME, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())));
             Files.write(bytes, tmpFile);
             ocrIntent.setResult(ocr(bytes));
+            ocrIntent.setData(null);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
