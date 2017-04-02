@@ -11,16 +11,21 @@ import com.google.common.collect.Maps;
 import org.nzdis.micro.DefaultSocialRole;
 import org.nzdis.micro.MicroMessage;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import pl.edu.agh.jkolodziej.micro.agent.PowerTutorHelper;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
+import pl.edu.agh.jkolodziej.micro.agent.enums.TaskDestination;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.CipherDataHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.ConnectionTypeHelper;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.DestinationMapper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.IntentParametersHelper;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
@@ -72,8 +77,16 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
         }
         intent.setTaskType(taskType);
         IntentParametersHelper.setFromFileIntentParameters(intent, bytes);
+
+        List<TaskDestination> destinationList = Arrays.asList(TaskDestination.values());
+        TaskDestination taskDestination = destinationList.get(new Random().nextInt(3));
+        message.setRecipient(DestinationMapper.getAgentNameByDestination(taskDestination));
+        Logger.getAnonymousLogger().log(Level.INFO, "WYBRANO DESTYNACJE: "
+                + taskDestination.name() + "->" + message.getRecipient());
+
         message.setIntent(intent);
-        sendGlobalBroadcast(message);
+        send(message);
+//        sendGlobalBroadcast(message);
     }
 
     public void startAddingFromFile() throws Exception {

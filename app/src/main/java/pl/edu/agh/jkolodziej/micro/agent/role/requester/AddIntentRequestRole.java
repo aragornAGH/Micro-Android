@@ -24,8 +24,6 @@ public class AddIntentRequestRole extends DefaultSocialRole {
 
     private Double sub1;
     private Double sub2;
-    private Long startTime;
-    private Long endTime;
     private final Context mContext;
 
     public AddIntentRequestRole(Context mContext) {

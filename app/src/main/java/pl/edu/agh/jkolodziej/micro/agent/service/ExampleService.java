@@ -47,14 +47,14 @@ public class ExampleService extends IntentService {
         Action action = (Action) intent.getSerializableExtra("action");
         IntentType intentType = (IntentType) intent.getSerializableExtra("intentType");
         if (Action.RUN_PROVIDER == action) {
-            SystemAgentLoader.newAgent(new AndroidProviderRole("android"), "provider-android");
+            SystemAgentLoader.newAgent(new AndroidProviderRole("android"), "android");
             Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
             responseToClient.putExtra("provider_run", true);
             LocalBroadcastManager.getInstance(this).sendBroadcast(responseToClient);
         } else if (Action.RUN_CLIENT == action) {
             makeClientAction(intentType, intent);
         } else if (Action.RUN_AWS_PROVIDER == action) {
-            SystemAgentLoader.newAgent(new AWSProviderRole(this), "provider-aws");
+            SystemAgentLoader.newAgent(new AWSProviderRole(this), "AWS");
             Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
             responseToClient.putExtra("provider_aws_run", true);
             LocalBroadcastManager.getInstance(this).sendBroadcast(responseToClient);

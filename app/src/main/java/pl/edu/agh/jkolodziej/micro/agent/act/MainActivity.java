@@ -42,6 +42,7 @@ import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.OCRHelper;
 import pl.edu.agh.jkolodziej.micro.agent.service.ExampleService;
+import pl.edu.agh.jkolodziej.micro.weka.WekaConstants;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 public class MainActivity extends AppCompatActivity {
@@ -205,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
         PowerTutorFacade powerTutorFacade = PowerTutorFacade.getInstance(this, "energy");
         powerTutorFacade.startPowerTutor();
         PowerTutorFacade.getInstance(this, "energy").bindService();
+        Toast.makeText(this, WekaConstants.BATTERY_USAGE, Toast.LENGTH_LONG).show();
     }
 
     public class ResponseFromServiceReceiver extends BroadcastReceiver {

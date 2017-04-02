@@ -26,6 +26,7 @@ android {
     configurations {
         all*.exclude group: 'log4j'
     }
+
     packagingOptions {
         pickFirst 'META-INF/LICENSE'
         pickFirst 'versionchanges.txt'
@@ -43,11 +44,11 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.1.0'
     testCompile 'junit:junit:4.12'
-    compile('pl.edu.agh.jkolodziej.micro:micro-core:1.0-SNAPSHOT') {
+//    compile('pl.edu.agh.jkolodziej.micro:micro-core:1.0-SNAPSHOT') {
 //        exclude group: 'com.thoughtworks.xstream'
-        exclude group: 'stax'
-        exclude group: 'net.sourceforge.tess4j'
-    }
+//        exclude group: 'stax'
+//        exclude group: 'net.sourceforge.tess4j'
+//    }
     compile 'com.amazonaws:aws-android-sdk-core:2.2.+'
     compile 'com.amazonaws:aws-android-sdk-cognito:2.2.+'
     compile 'com.amazonaws:aws-android-sdk-lambda:2.2.+'
@@ -55,5 +56,6 @@ dependencies {
     compile 'com.android.support:multidex:1.0.1'
 //    compile 'com.rmtheis:tess-two:6.2.0'
     compile project(':ocr')
-    compile project(':power_tutor')
+//    compile project(':power_tutor')
+    compile project(':weka')
 }
