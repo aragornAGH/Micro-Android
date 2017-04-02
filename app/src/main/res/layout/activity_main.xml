@@ -24,7 +24,7 @@
         android:layout_marginTop="120dp"/>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/mobileProviderButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
@@ -33,29 +33,29 @@
 
 
     <EditText
-        android:id="@+id/editText3"
+        android:id="@+id/subOneLabelText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/editText"
-        android:layout_alignBottom="@+id/editText"
+        android:layout_alignBaseline="@+id/subOneText"
+        android:layout_alignBottom="@+id/subOneText"
         android:layout_alignParentStart="true"
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Składnik 1" />
 
     <EditText
-        android:id="@+id/editText5"
+        android:id="@+id/subTwoLabelText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/editText2"
-        android:layout_alignBottom="@+id/editText2"
+        android:layout_alignBaseline="@+id/subTwoText"
+        android:layout_alignBottom="@+id/subTwoText"
         android:layout_alignParentStart="true"
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Składnik 2" />
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/AWSProviderButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -63,25 +63,15 @@
         android:text="start providera AWS" />
 
     <Spinner
-        android:id="@+id/spinner"
+        android:id="@+id/taskTypeSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="13dp"
-        android:layout_below="@+id/button"
+        android:layout_below="@+id/mobileProviderButton"
         android:layout_alignParentStart="true" />
 
     <EditText
-        android:id="@+id/editText2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="numberDecimal"
-        android:layout_marginTop="26dp"
-        android:layout_below="@+id/editText3"
-        android:layout_alignParentEnd="true" />
-
-    <EditText
-        android:id="@+id/editText"
+        android:id="@+id/subOneText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -90,11 +80,21 @@
         android:layout_alignParentEnd="true"
         android:layout_marginTop="11dp" />
 
+    <EditText
+        android:id="@+id/subTwoText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        android:layout_marginTop="26dp"
+        android:layout_below="@+id/subOneLabelText"
+        android:layout_alignParentEnd="true" />
+
     <Button
         android:id="@+id/runButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Run"
-        android:layout_below="@+id/spinner"
+        android:layout_below="@+id/taskTypeSpinner"
         android:layout_marginTop="10dp" />
 </RelativeLayout>

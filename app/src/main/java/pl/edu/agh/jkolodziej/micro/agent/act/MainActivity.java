@@ -104,13 +104,13 @@ public class MainActivity extends AppCompatActivity {
         receiver = new ResponseFromServiceReceiver(getApplicationContext());
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
 
-        sub1Text = (EditText) findViewById(R.id.editText);
-        sub2Text = (EditText) findViewById(R.id.editText2);
+        sub1Text = (EditText) findViewById(R.id.subOneText);
+        sub2Text = (EditText) findViewById(R.id.subTwoText);
 
-        sub1Label = (EditText) findViewById(R.id.editText3);
-        sub2Label = (EditText) findViewById(R.id.editText5);
+        sub1Label = (EditText) findViewById(R.id.subOneLabelText);
+        sub2Label = (EditText) findViewById(R.id.subTwoLabelText);
 
-        final Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        final Spinner spinner = (Spinner) findViewById(R.id.taskTypeSpinner);
         ArrayAdapter<IntentType> adapter = new ArrayAdapter<IntentType>(this, android.R.layout.simple_spinner_item, IntentType.values());
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button providerButton = (Button) findViewById(R.id.button);
+        Button providerButton = (Button) findViewById(R.id.mobileProviderButton);
         providerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        Button AWSButton = (Button) findViewById(R.id.button3);
+        Button AWSButton = (Button) findViewById(R.id.AWSProviderButton);
         AWSButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
