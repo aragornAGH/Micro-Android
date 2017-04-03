@@ -46,8 +46,8 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
         CLASS_INTENT_MAP.put(OCRIntent.class, IntentType.OCR);
     }
 
-    private final Context mContext;
-    private byte[] bytes;
+    protected final Context mContext;
+    protected byte[] bytes;
 
     public FromFileIntentRequestRole(Context mContext) {
         this.mContext = mContext;
@@ -61,7 +61,7 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
     protected void release() {
     }
 
-    private void setDataAndSendMessage(ServiceIntent intent, TaskType taskType) throws Exception {
+    protected void setDataAndSendMessage(ServiceIntent intent, TaskType taskType) throws Exception {
         MicroMessage message = new MicroMessage();
         intent.setData(CipherDataHelper.encryptByteArray(bytes));
         intent.setStartTime(System.nanoTime());
@@ -78,15 +78,8 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
         intent.setTaskType(taskType);
         IntentParametersHelper.setFromFileIntentParameters(intent, bytes);
 
-        List<TaskDestination> destinationList = Arrays.asList(TaskDestination.values());
-        TaskDestination taskDestination = destinationList.get(new Random().nextInt(3));
-        message.setRecipient(DestinationMapper.getAgentNameByDestination(taskDestination));
-        Logger.getAnonymousLogger().log(Level.INFO, "WYBRANO DESTYNACJE: "
-                + taskDestination.name() + "->" + message.getRecipient());
-
         message.setIntent(intent);
-        send(message);
-//        sendGlobalBroadcast(message);
+        sendGlobalBroadcast(message);
     }
 
     public void startAddingFromFile() throws Exception {

@@ -17,6 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.ExampleService" />
+        <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.TestAgentService"/>
         <activity android:name="pl.edu.agh.jkolodziej.micro.agent.act.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

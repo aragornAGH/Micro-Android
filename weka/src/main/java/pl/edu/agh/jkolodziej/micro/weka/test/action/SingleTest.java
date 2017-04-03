@@ -1,7 +1,5 @@
 package pl.edu.agh.jkolodziej.micro.weka.test.action;
 
-import java.util.Map;
-
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 
 /**
@@ -20,17 +18,17 @@ public class SingleTest implements Action {
 
     private final int numberOfTests;
 
-    private final Map<String, String> props;
+//    private final Map<String, String> props;
 
-    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored, Map<String, String> props) {
+    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored /*,Map<String, String> props*/) {
         this.taskType = taskType;
         this.numberOfTests = numberOfTests;
         this.ignored = ignored;
-        this.props = props;
+//        this.props = props;
     }
 
     public SingleTest(SingleTest test) {
-        this(test.getTaskType(), test.getNumberOfTests(), test.isIgnored(), test.getProps());
+        this(test.getTaskType(), test.getNumberOfTests(), test.isIgnored() /*,test.getProps()*/);
     }
 
     public int getNumberOfTests() {
@@ -41,25 +39,26 @@ public class SingleTest implements Action {
         return ignored;
     }
 
-    public void setIgnored(){
+    public void setIgnored() {
         ignored = true;
     }
 
-    public Map<String, String> getProps() {
-        return props;
-    }
+//    public Map<String, String> getProps() {
+//        return props;
+//    }
 
     @Override
     public boolean equals(Object o) {
         return o instanceof SingleTest && numberOfTests == ((SingleTest) o).getNumberOfTests()
-                && ignored == ((SingleTest) o).isIgnored() && props.equals(((SingleTest) o).getProps());
+                && ignored == ((SingleTest) o).isIgnored();
+//                && props.equals(((SingleTest) o).getProps());
     }
 
     @Override
     public int hashCode() {
         int hash = 13;
         hash = hash * 17 + numberOfTests;
-        hash = hash * 19 + props.hashCode();
+//        hash = hash * 19 + props.hashCode();
         return hash * 23 + (ignored ? 29 : 31);
     }
 

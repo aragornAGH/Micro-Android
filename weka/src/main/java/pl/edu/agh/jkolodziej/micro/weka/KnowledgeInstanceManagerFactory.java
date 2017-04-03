@@ -29,9 +29,9 @@ public class KnowledgeInstanceManagerFactory {
         return getBatteryInstanceManager(path, "MultilayerPerceptron");
     }
 
-    private static KnowledgeInstanceManager getTimeInstanceManager(String path, String classifierName) {
+    public static KnowledgeInstanceManager getTimeInstanceManager(String path, String classifierName) {
         KnowledgeInstanceManager knowledgeInstanceManager = timeInstanceManagers.get(path);
-        if (knowledgeInstanceManager != null) {
+        if (knowledgeInstanceManager == null) {
             Classifier classifier = getClassifierByName(classifierName);
             knowledgeInstanceManager = new ExecutionTimeInstanceManager();
             knowledgeInstanceManager.setClassifier(classifier);
@@ -41,9 +41,9 @@ public class KnowledgeInstanceManagerFactory {
     }
 
 
-    private static KnowledgeInstanceManager getBatteryInstanceManager(String path, String classifierName) {
+    public static KnowledgeInstanceManager getBatteryInstanceManager(String path, String classifierName) {
         KnowledgeInstanceManager knowledgeInstanceManager = batteryInstanceManagers.get(path);
-        if (knowledgeInstanceManager != null) {
+        if (knowledgeInstanceManager == null) {
             Classifier classifier = getClassifierByName(classifierName);
             knowledgeInstanceManager = new BatteryInstanceManager();
             knowledgeInstanceManager.setClassifier(classifier);

@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaInvokerFactory;
 import com.amazonaws.regions.Regions;
@@ -42,7 +43,7 @@ import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.OCRHelper;
 import pl.edu.agh.jkolodziej.micro.agent.service.ExampleService;
-import pl.edu.agh.jkolodziej.micro.weka.WekaConstants;
+import pl.edu.agh.jkolodziej.micro.agent.service.TestAgentService;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 public class MainActivity extends AppCompatActivity {
@@ -101,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         IntentFilter filter = new IntentFilter(ResponseFromServiceReceiver.RESPONSE);
-        receiver = new ResponseFromServiceReceiver(getApplicationContext());
+        receiver = new ResponseFromServiceReceiver(MainActivity.this);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
 
         sub1Text = (EditText) findViewById(R.id.subOneText);
@@ -162,11 +163,14 @@ public class MainActivity extends AppCompatActivity {
                             MTRuntime.aws_identity_pool,
                             Regions.valueOf(MTRuntime.aws_region));
 
+                    ClientConfiguration cc = new ClientConfiguration();
+                    cc.setSocketTimeout(0);
+
                     // Create a LambdaInvokerFactory, to be used to instantiate the Lambda proxy
                     factory = new LambdaInvokerFactory(
                             getApplicationContext(),
                             Regions.valueOf(MTRuntime.aws_region),
-                            credentialsProvider);
+                            credentialsProvider, cc);
 
                     // Create the Lambda proxy object with default Json data binder.
                     // You can provide your own data binder by implementing
@@ -197,6 +201,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button testButton = (Button) findViewById(R.id.testButton);
+        testButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, TestAgentService.class);
+                startService(intent);
+            }
+        });
+
         try {
             MicroBootProperties.readConfiguration();
         } catch (Exception e) {
@@ -206,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
         PowerTutorFacade powerTutorFacade = PowerTutorFacade.getInstance(this, "energy");
         powerTutorFacade.startPowerTutor();
         PowerTutorFacade.getInstance(this, "energy").bindService();
-        Toast.makeText(this, WekaConstants.BATTERY_USAGE, Toast.LENGTH_LONG).show();
     }
 
     public class ResponseFromServiceReceiver extends BroadcastReceiver {

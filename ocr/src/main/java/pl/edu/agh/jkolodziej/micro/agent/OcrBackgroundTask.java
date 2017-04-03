@@ -17,6 +17,6 @@ public class OcrBackgroundTask {
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         baseAPI.setImage(BitmapFactory.decodeByteArray(imageFile, 0, imageFile.length, options));
 
-        return baseAPI.getUTF8Text();
+        return baseAPI.getUTF8Text().replaceAll("[^A-Za-z0-9 \n]", "");
     }
 }

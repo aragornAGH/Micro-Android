@@ -2,7 +2,6 @@ package pl.edu.agh.jkolodziej.micro.weka.test;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 import pl.edu.agh.jkolodziej.micro.weka.test.action.Action;
 
@@ -64,8 +63,6 @@ public class TestsConfiguration {
         private int warmup;
         private int series;
         private int rounds;
-        private Map<String, String> ocrSpecificProps;
-        private Map<String, String> frSpecificProps;
         private List<Action> actions;
         private String classifierName;
 
@@ -91,16 +88,6 @@ public class TestsConfiguration {
 
         public Builder setRounds(int rounds) {
             this.rounds = rounds;
-            return this;
-        }
-
-        public Builder setOcrSpecificProps(Map<String, String> ocrSpecificProps) {
-            this.ocrSpecificProps = ocrSpecificProps;
-            return this;
-        }
-
-        public Builder setFrSpecificProps(Map<String, String> frSpecificProps) {
-            this.frSpecificProps = frSpecificProps;
             return this;
         }
 

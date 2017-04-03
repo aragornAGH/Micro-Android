@@ -2,13 +2,16 @@ package pl.edu.agh.jkolodziej.micro.agent.aws;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunctionException;
 
+import pl.edu.agh.jkolodziej.micro.agent.BatteryUtils;
 import pl.edu.agh.jkolodziej.micro.agent.PowerTutorHelper;
 import pl.edu.agh.jkolodziej.micro.agent.R;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
@@ -18,15 +21,23 @@ import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ServiceIntent;
+import pl.edu.agh.jkolodziej.micro.agent.role.requester.FromFileIntentWekaRequestRole;
+import pl.edu.agh.jkolodziej.micro.weka.params.LearningParameters;
+import pl.edu.agh.jkolodziej.micro.weka.test.Measurement;
+import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 /**
  * Created by Kołacz.
  */
 
 public class AWSLambdaRequester {
-    public static boolean requestIfNeeded(Intent intent, final LambdaInterface myInterface, final Context mContext, final ListView list) {
+    private static ServiceIntent serviceIntent = null;
+
+    public static boolean requestIfNeeded(final Intent intent, final LambdaInterface myInterface, final Context mContext, final ListView list) {
+
         if (intent.getSerializableExtra("addIntent") != null) {
             AddIntent addIntent = (AddIntent) intent.getSerializableExtra("addIntent");
+            serviceIntent = addIntent;
             new AsyncTask<AddIntent, Void, AddIntent>() {
                 @Override
                 protected AddIntent doInBackground(AddIntent... params) {
@@ -39,13 +50,14 @@ public class AWSLambdaRequester {
 
                 @Override
                 protected void onPostExecute(AddIntent result) {
-                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.ADDING, list);
+                    AWSLambdaRequester.onPostExecute(intent, serviceIntent, result, mContext, IntentType.ADDING, list);
                 }
             }.execute(addIntent);
             return true;
 
         } else if (intent.getSerializableExtra("addingFromFileIntent") != null) {
             AddingFromFileIntent addingFromFileIntent = (AddingFromFileIntent) intent.getSerializableExtra("addingFromFileIntent");
+            serviceIntent = addingFromFileIntent;
             new AsyncTask<AddingFromFileIntent, Void, AddingFromFileIntent>() {
                 @Override
                 protected AddingFromFileIntent doInBackground(AddingFromFileIntent... params) {
@@ -58,12 +70,13 @@ public class AWSLambdaRequester {
 
                 @Override
                 protected void onPostExecute(AddingFromFileIntent result) {
-                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.ADDING_FROM_FILE, list);
+                    AWSLambdaRequester.onPostExecute(intent, serviceIntent, result, mContext, IntentType.ADDING_FROM_FILE, list);
                 }
             }.execute(addingFromFileIntent);
             return true;
         } else if (intent.getSerializableExtra("convertingPNGToPDF") != null) {
-            ConvertPngToPDFIntent addingFromFileIntent = (ConvertPngToPDFIntent) intent.getSerializableExtra("convertingPNGToPDF");
+            ConvertPngToPDFIntent convertPNGToPDFIntent = (ConvertPngToPDFIntent) intent.getSerializableExtra("convertingPNGToPDF");
+            serviceIntent = convertPNGToPDFIntent;
             new AsyncTask<ConvertPngToPDFIntent, Void, ConvertPngToPDFIntent>() {
                 @Override
                 protected ConvertPngToPDFIntent doInBackground(ConvertPngToPDFIntent... params) {
@@ -76,12 +89,13 @@ public class AWSLambdaRequester {
 
                 @Override
                 protected void onPostExecute(ConvertPngToPDFIntent result) {
-                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.PNG_TO_PDF, list);
+                    AWSLambdaRequester.onPostExecute(intent, serviceIntent, result, mContext, IntentType.PNG_TO_PDF, list);
                 }
-            }.execute(addingFromFileIntent);
+            }.execute(convertPNGToPDFIntent);
             return true;
         } else if (intent.getSerializableExtra("OCR") != null) {
-            OCRIntent addingFromFileIntent = (OCRIntent) intent.getSerializableExtra("OCR");
+            OCRIntent ocrIntent = (OCRIntent) intent.getSerializableExtra("OCR");
+            serviceIntent = ocrIntent;
             new AsyncTask<OCRIntent, Void, OCRIntent>() {
                 @Override
                 protected OCRIntent doInBackground(OCRIntent... params) {
@@ -94,20 +108,45 @@ public class AWSLambdaRequester {
 
                 @Override
                 protected void onPostExecute(OCRIntent result) {
-                    AWSLambdaRequester.onPostExecute(result, mContext, IntentType.OCR, list);
+                    AWSLambdaRequester.onPostExecute(intent, serviceIntent, result, mContext, IntentType.OCR, list);
                 }
-            }.execute(addingFromFileIntent);
+            }.execute(ocrIntent);
             return true;
         }
         return false;
     }
 
 
-    public static void onPostExecute(ServiceIntent result, Context mContext, IntentType intentType, ListView list) {
+    public static void onPostExecute(Intent intent, ServiceIntent serviceIntent, ServiceIntent result, Context mContext, IntentType intentType, ListView list) {
         if (result == null) {
             return;
         }
-        Long duration = System.nanoTime() - result.getStartTime();
+        Long endTime = System.nanoTime();
+        Long duration = endTime - result.getStartTime();
+        if (intent.getSerializableExtra("message") != null && serviceIntent.getTaskDestination() != null) {
+            LearningParameters params = new LearningParameters(serviceIntent.getTaskType());
+            params.setDestination(serviceIntent.getTaskDestination().name());
+            params.setConnectionType(serviceIntent.getConnectionType());
+            params.setFileSize(serviceIntent.getFileSize());
+            params.setResolution(serviceIntent.getResolution());
+            params.setWifiStrength(serviceIntent.getWifiPowerSignal());
+
+            long batteryState = PowerTutorFacade.getInstance(mContext, "energy").getTotalPowerForUid();
+            IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+            Intent batteryStatus = mContext.registerReceiver(null, ifilter);
+            double voltage = batteryStatus.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1) / 1000.0;
+            double percentageUsageOfbattery = BatteryUtils.getPercentageUsageOfBattery(mContext, voltage,
+                    batteryState - serviceIntent.getStartBattery());
+
+            FromFileIntentWekaRequestRole.testsContext.appendResult(params,
+                    new Measurement.Result(false, endTime - serviceIntent.getStartTime(),
+                            batteryState - serviceIntent.getStartBattery(),
+                            percentageUsageOfbattery,
+                            serviceIntent.getConnectionType(),
+                            params),
+                    result.getResult());
+            FromFileIntentWekaRequestRole.IS_BUSY = false;
+        }
         Double batteryPercentage = PowerTutorHelper.getPercentageUsageOfBattery(mContext, result.getStartBattery());
         Toast.makeText(mContext, intentType + " - " + result.getWorker() + " - " + duration / Math.pow(10.0, 6) + " ms; battery: " + batteryPercentage + "%", Toast.LENGTH_SHORT).show();
         MainActivity.results.add(intentType + " - " + result.getWorker() + " - " + duration / Math.pow(10.0, 6) + " ms; battery: " + batteryPercentage + "%");

@@ -47,6 +47,7 @@ public class AWSProviderRole extends DefaultSocialRole {
         intent.setWorker("AWS");
         Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
         responseToClient.putExtra(CLASS_INTENT_MAP.get(message.getIntent().getClass()), intent);
+        responseToClient.putExtra("message", message);
         LocalBroadcastManager.getInstance(context).sendBroadcast(responseToClient);
     }
 

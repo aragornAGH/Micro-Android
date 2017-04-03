@@ -23,14 +23,6 @@
         android:layout_below="@+id/runButton"
         android:layout_marginTop="120dp"/>
 
-    <Button
-        android:id="@+id/mobileProviderButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:text="start Providera" />
-
 
     <EditText
         android:id="@+id/subOneLabelText"
@@ -53,14 +45,6 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Składnik 2" />
-
-    <Button
-        android:id="@+id/AWSProviderButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:text="start providera AWS" />
 
     <Spinner
         android:id="@+id/taskTypeSpinner"
@@ -97,4 +81,28 @@
         android:text="Run"
         android:layout_below="@+id/taskTypeSpinner"
         android:layout_marginTop="10dp" />
+
+    <Button
+        android:id="@+id/mobileProviderButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="start Providera"
+        android:layout_below="@+id/testButton"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:id="@+id/AWSProviderButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="start providera AWS"
+        android:layout_below="@+id/testButton"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:text="Test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/testButton"
+        android:layout_alignParentTop="true"
+        android:layout_alignEnd="@+id/subOneLabelText" />
 </RelativeLayout>
