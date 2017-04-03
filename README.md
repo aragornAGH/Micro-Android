@@ -5,5 +5,5 @@ This subproject micro-android contains
 - All staff which is need to run Micro-Agent platform on Android device
 - Power Tutor as a library tool to gather information about battery usage
 - Tesseract-Two as a library to run OCR on Android devices
-- WEKA as a library to use machine learning on this project
+- WEKA as a library to use machine learning on Android devices
 
