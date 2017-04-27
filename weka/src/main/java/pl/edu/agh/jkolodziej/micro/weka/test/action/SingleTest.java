@@ -3,6 +3,7 @@ package pl.edu.agh.jkolodziej.micro.weka.test.action;
 import java.io.Serializable;
 
 import pl.edu.agh.jkolodziej.micro.agent.enums.ConnectionType;
+import pl.edu.agh.jkolodziej.micro.agent.enums.TaskDestination;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 
 /**
@@ -25,19 +26,22 @@ public class SingleTest implements Action, Serializable {
 
     private ConnectionType connectionType;
 
+    private TaskDestination taskDestination;
+
 //    private final Map<String, String> props;
 
-    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored, String fileName, ConnectionType connectionType /*,Map<String, String> props*/) {
+    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored, String fileName, ConnectionType connectionType, TaskDestination taskDestination /*,Map<String, String> props*/) {
         this.taskType = taskType;
         this.numberOfTests = numberOfTests;
         this.ignored = ignored;
         this.fileName = fileName;
         this.connectionType = connectionType;
+        this.taskDestination = taskDestination;
 //        this.props = props;
     }
 
     public SingleTest(SingleTest test) {
-        this(test.getTaskType(), test.getNumberOfTests(), test.isIgnored(), test.getFileName(), test.getConnectionType()/*,test.getProps()*/);
+        this(test.getTaskType(), test.getNumberOfTests(), test.isIgnored(), test.getFileName(), test.getConnectionType(), test.getTaskDestination()/*,test.getProps()*/);
     }
 
     public String getFileName() {
@@ -89,5 +93,9 @@ public class SingleTest implements Action, Serializable {
 
     public TaskType getTaskType() {
         return taskType;
+    }
+
+    public TaskDestination getTaskDestination() {
+        return taskDestination;
     }
 }

@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import pl.edu.agh.jkolodziej.micro.agent.BatteryUtils;
-import pl.edu.agh.jkolodziej.micro.agent.enums.ConnectionType;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskDestination;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.CipherDataHelper;
@@ -27,6 +26,7 @@ import pl.edu.agh.jkolodziej.micro.weka.params.LearningParameters;
 import pl.edu.agh.jkolodziej.micro.weka.predictors.ExecutionPredictor;
 import pl.edu.agh.jkolodziej.micro.weka.test.Measurement;
 import pl.edu.agh.jkolodziej.micro.weka.test.TestsContext;
+import pl.edu.agh.jkolodziej.micro.weka.test.action.SingleTest;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 /**
@@ -52,7 +52,7 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
 
     }
 
-    protected void setDataAndSendMessage(ServiceIntent intent, TaskType taskType, ExecutionPredictor predictor, ConnectionType connectionType) throws Exception {
+    protected void setDataAndSendMessage(ServiceIntent intent, TaskType taskType, ExecutionPredictor predictor, SingleTest singleTest) throws Exception {
         IS_BUSY = true;
         MicroMessage message = new MicroMessage();
         intent.setData(CipherDataHelper.encryptByteArray(bytes));
@@ -75,25 +75,12 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
         learningParameters.setResolution(intent.getResolution());
         learningParameters.setFileSize(intent.getFileSize());
         learningParameters.setConnectionType(intent.getConnectionType());
-        TaskDestination taskDestination = predictor.getTaskDestination(learningParameters, TestSettings.TIME_WEIGHT, TestSettings.BATTERY_WEIGHT);
+        TaskDestination taskDestination = singleTest.getTaskDestination() != null ? singleTest.getTaskDestination()
+                : predictor.getTaskDestination(learningParameters, TestSettings.TIME_WEIGHT, TestSettings.BATTERY_WEIGHT);
         intent.setTaskDestination(taskDestination);
 
         Logger.getAnonymousLogger().log(Level.INFO, "WYBRANO DESTYNACJE(" + bytes.length + "b): "
                 + taskDestination.name() + "->" + message.getRecipient());
-
-        if ((TaskDestination.CLOUD == taskDestination && ConnectionType.NONE == connectionType)
-                || (TaskDestination.DOCKER == taskDestination && ConnectionType.WIFI != connectionType)) {
-            testsContext.appendResult(learningParameters,
-                    new Measurement.Result(false, Long.MAX_VALUE,
-                            Long.MAX_VALUE,
-                            100.0,
-                            intent.getConnectionType(),
-                            learningParameters,
-                            true),
-                    intent.getResult());
-            IS_BUSY = false;
-            return;
-        }
 
         message.setRecipient(DestinationMapper.getAgentNameByDestination(taskDestination));
 
@@ -101,8 +88,8 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
         send(message);
     }
 
-    public void startOCR(ExecutionPredictor executionPredictor, ConnectionType connectionType) throws Exception {
-        setDataAndSendMessage(new OCRIntent(), TaskType.OCR, executionPredictor, connectionType);
+    public void startOCR(ExecutionPredictor executionPredictor, SingleTest singleTest) throws Exception {
+        setDataAndSendMessage(new OCRIntent(), TaskType.OCR, executionPredictor, singleTest);
     }
 
     @Override
