@@ -46,14 +46,6 @@
         android:inputType="textPersonName"
         android:text="Składnik 2" />
 
-    <Spinner
-        android:id="@+id/taskTypeSpinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="13dp"
-        android:layout_below="@+id/mobileProviderButton"
-        android:layout_alignParentStart="true" />
-
     <EditText
         android:id="@+id/subOneText"
         android:layout_width="wrap_content"
@@ -75,14 +67,6 @@
         android:layout_alignParentEnd="true" />
 
     <Button
-        android:id="@+id/runButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Run"
-        android:layout_below="@+id/taskTypeSpinner"
-        android:layout_marginTop="10dp" />
-
-    <Button
         android:id="@+id/mobileProviderButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -100,9 +84,33 @@
 
     <Button
         android:text="Test"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/testButton"
         android:layout_alignParentTop="true"
-        android:layout_alignEnd="@+id/subOneLabelText" />
+        android:layout_alignEnd="@+id/runButton" />
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner"
+        android:layout_below="@+id/taskTypeSpinner"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:id="@+id/runButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Run"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/taskTypeSpinner"
+        android:layout_alignParentStart="true" />
+
+    <Spinner
+        android:id="@+id/taskTypeSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="21dp"
+        android:layout_below="@+id/mobileProviderButton"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>

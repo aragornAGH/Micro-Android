@@ -27,7 +27,7 @@ import pl.edu.agh.jkolodziej.micro.weka.test.Measurement;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 /**
- * Created by Kołacz.
+ * @author Jakub Kołodziej
  */
 
 public class AWSLambdaRequester {
@@ -121,7 +121,7 @@ public class AWSLambdaRequester {
         if (result == null) {
             return;
         }
-        Long endTime = System.nanoTime();
+        Long endTime = System.currentTimeMillis();
         Long duration = endTime - result.getStartTime();
         if (intent.getSerializableExtra("message") != null && serviceIntent.getTaskDestination() != null) {
             LearningParameters params = new LearningParameters(serviceIntent.getTaskType());
@@ -148,8 +148,8 @@ public class AWSLambdaRequester {
             FromFileIntentWekaRequestRole.IS_BUSY = false;
         }
         Double batteryPercentage = PowerTutorHelper.getPercentageUsageOfBattery(mContext, result.getStartBattery());
-        Toast.makeText(mContext, intentType + " - " + result.getWorker() + " - " + duration / Math.pow(10.0, 6) + " ms; battery: " + batteryPercentage + "%", Toast.LENGTH_SHORT).show();
-        MainActivity.results.add(intentType + " - " + result.getWorker() + " - " + duration / Math.pow(10.0, 6) + " ms; battery: " + batteryPercentage + "%");
+        Toast.makeText(mContext, intentType + " - " + result.getWorker() + " - " + duration + " ms; battery: " + batteryPercentage + "%", Toast.LENGTH_SHORT).show();
+        MainActivity.results.add(intentType + " - " + result.getWorker() + " - " + duration + " ms; battery: " + batteryPercentage + "%");
         MainActivity.adapter = new ArrayAdapter<String>(mContext, R.layout.row_list_view, MainActivity.results);
         list.setAdapter(MainActivity.adapter);
         list.refreshDrawableState();

@@ -2,11 +2,16 @@ package pl.edu.agh.jkolodziej.micro.agent.act;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -14,6 +19,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -42,13 +48,16 @@ import pl.edu.agh.jkolodziej.micro.agent.enums.Action;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.OCRHelper;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings;
 import pl.edu.agh.jkolodziej.micro.agent.service.ExampleService;
 import pl.edu.agh.jkolodziej.micro.agent.service.TestAgentService;
+import pl.edu.agh.jkolodziej.micro.weka.test.action.SingleTest;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ResponseFromServiceReceiver receiver;
+    private ResponseFromServiceReceiver responseFromServiceReceiver;
+    private ChangeConnectionServiceReceiver changeConnectionServiceReceiver;
     public static List<String> results = Lists.newArrayList();
     public static ArrayAdapter<String> adapter;
     private boolean providerRun;
@@ -102,14 +111,34 @@ public class MainActivity extends AppCompatActivity {
 
 
         IntentFilter filter = new IntentFilter(ResponseFromServiceReceiver.RESPONSE);
-        receiver = new ResponseFromServiceReceiver(MainActivity.this);
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
+        responseFromServiceReceiver = new ResponseFromServiceReceiver(MainActivity.this);
+        LocalBroadcastManager.getInstance(this).registerReceiver(responseFromServiceReceiver, filter);
+
+        IntentFilter filter2 = new IntentFilter(ChangeConnectionServiceReceiver.CHANGE_CONNECTION);
+        changeConnectionServiceReceiver = new ChangeConnectionServiceReceiver(MainActivity.this);
+        LocalBroadcastManager.getInstance(this).registerReceiver(changeConnectionServiceReceiver, filter2);
 
         sub1Text = (EditText) findViewById(R.id.subOneText);
         sub2Text = (EditText) findViewById(R.id.subTwoText);
 
         sub1Label = (EditText) findViewById(R.id.subOneLabelText);
         sub2Label = (EditText) findViewById(R.id.subTwoLabelText);
+
+
+        final Spinner fileSpinner = (Spinner) findViewById(R.id.spinner);
+        List<String> files = Lists.newArrayList("sample_ocr.jpg",
+                "sample_ocr2.jpg",
+                "sample_ocr3.jpg",
+                "sample_ocr4.jpg",
+                "sample_ocr5.jpg",
+                "sample_ocr6.jpg",
+                "sample_ocr7.jpg",
+                "sample_ocr8.jpg",
+                "sample_ocr9.jpg",
+                "sample_ocr10.jpg");
+        ArrayAdapter<String> filesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, files);
+        filesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        fileSpinner.setAdapter(filesAdapter);
 
         final Spinner spinner = (Spinner) findViewById(R.id.taskTypeSpinner);
         ArrayAdapter<IntentType> adapter = new ArrayAdapter<IntentType>(this, android.R.layout.simple_spinner_item, IntentType.values());
@@ -125,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
                 sub2Text.setVisibility(hide ? View.GONE : View.VISIBLE);
                 sub1Label.setVisibility(hide ? View.GONE : View.VISIBLE);
                 sub2Label.setVisibility(hide ? View.GONE : View.VISIBLE);
+                fileSpinner.setVisibility(IntentType.OCR == intentType ? View.VISIBLE : View.GONE);
             }
 
             @Override
@@ -196,6 +226,9 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("sub1", Double.parseDouble(sub1Text.getText().toString().replaceAll(",", ".")));
                     intent.putExtra("sub2", Double.parseDouble(sub2Text.getText().toString().replaceAll(",", ".")));
                 }
+                if (IntentType.OCR == intentType) {
+                    intent.putExtra("fileName", (String) fileSpinner.getSelectedItem());
+                }
                 startService(intent);
 
             }
@@ -221,6 +254,57 @@ public class MainActivity extends AppCompatActivity {
         PowerTutorFacade.getInstance(this, "energy").bindService();
     }
 
+    public class ChangeConnectionServiceReceiver extends BroadcastReceiver {
+        public static final String CHANGE_CONNECTION = "pl.edu.agh.jkolodziej.micro.agent.CHANGE_CONNECTION";
+        private final Context mContext;
+
+        public ChangeConnectionServiceReceiver(Context context) {
+            this.mContext = context;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final SingleTest test = (SingleTest) intent.getSerializableExtra("test");
+
+            AlertDialog dialog = new AlertDialog.Builder(mContext)
+                    .setMessage("Change connection to: " + test.getConnectionType().toString() + " and click OK.")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+//                            try {
+//                                if (test.getConnectionType() == ConnectionTypeHelper.getConnectionType(getApplicationContext())) {
+                            TestSettings.INTERNET_CONNECTION_NEED_TO_CHANGE = false;
+//                                } else {
+//                                    runTestInValidateConnectionType(mContext, test);
+//                                }
+//                            } catch (ParserConfigurationException e) {
+//                                e.printStackTrace();
+//                            } catch (SAXException e) {
+//                                e.printStackTrace();
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+                        }
+                    })
+                    .create();
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.show();
+            playNotificationSound();
+        }
+
+        private void playNotificationSound() {
+            try {
+                Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                r.play();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public class ResponseFromServiceReceiver extends BroadcastReceiver {
 
         public static final String RESPONSE = "pl.edu.agh.jkolodziej.micro.agent.RESPONSE";
@@ -234,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             String worker = intent.getStringExtra("worker");
             String result = intent.getStringExtra("result");
-            Long nanoSeconds = intent.getLongExtra("duration", 0L);
+            Long miliSeconds = intent.getLongExtra("duration", 0L);
             Double batteryPercentage = intent.getDoubleExtra("batteryPercentage", 0.0);
             IntentType intentType = (IntentType) intent.getSerializableExtra("intentType");
             Boolean provRun = intent.getBooleanExtra("provider_run", false);
@@ -249,9 +333,9 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(mContext, "Provider AWS wystartował ;-)", Toast.LENGTH_SHORT).show();
                     providerAWSRun = true;
                 } else {
-                    Toast.makeText(mContext, intentType + " - " + worker + " - " + result + " " + (nanoSeconds / Math.pow(10.0, 6)) + "ms; battery " +
+                    Toast.makeText(mContext, intentType + " - " + worker + " - " + result + " " + miliSeconds + "ms; battery " +
                             batteryPercentage + "%", Toast.LENGTH_SHORT).show();
-                    results.add(intentType + " - " + worker + " - " + (nanoSeconds / Math.pow(10.0, 6)) + "ms; battery: " + batteryPercentage + "%");
+                    results.add(intentType + " - " + worker + " - " + miliSeconds + "ms; battery: " + batteryPercentage + "%");
                     ListView list = (ListView) findViewById(R.id.listView);
                     adapter = new ArrayAdapter<String>(mContext, R.layout.row_list_view, results);
                     list.setAdapter(adapter);
@@ -263,7 +347,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(receiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(responseFromServiceReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(changeConnectionServiceReceiver);
         super.onDestroy();
     }
 }

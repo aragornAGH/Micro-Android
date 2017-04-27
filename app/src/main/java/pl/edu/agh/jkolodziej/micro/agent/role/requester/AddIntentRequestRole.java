@@ -39,7 +39,7 @@ public class AddIntentRequestRole extends DefaultSocialRole {
         MicroMessage message = new MicroMessage();
         AddIntent intent = new AddIntent();
         intent.setData(sub1 + ";" + sub2);
-        intent.setStartTime(System.nanoTime());
+        intent.setStartTime(System.currentTimeMillis());
         intent.setStartBattery(PowerTutorFacade.getInstance(mContext, "energy").getTotalPowerForUid());
         message.setIntent(intent);
         sendGlobalBroadcast(message);
@@ -54,7 +54,7 @@ public class AddIntentRequestRole extends DefaultSocialRole {
         Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
         responseToClient.putExtra("worker", worker);
         responseToClient.putExtra("result", result);
-        responseToClient.putExtra("duration", System.nanoTime() - intent.getStartTime());
+        responseToClient.putExtra("duration", System.currentTimeMillis() - intent.getStartTime());
         responseToClient.putExtra("batteryPercentage", PowerTutorHelper.getPercentageUsageOfBattery(mContext, intent.getStartBattery()));
         responseToClient.putExtra("intentType", IntentType.ADDING);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(responseToClient);

@@ -9,7 +9,9 @@ import pl.edu.agh.jkolodziej.micro.weka.managers.KnowledgeInstanceManager;
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.functions.MultilayerPerceptron;
+import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.trees.J48;
+import weka.classifiers.trees.RandomForest;
 
 /**
  * @author - Jakub Kołodziej
@@ -19,14 +21,6 @@ public class KnowledgeInstanceManagerFactory {
     private static Map<String, KnowledgeInstanceManager> batteryInstanceManagers = new HashMap<>();
 
     private KnowledgeInstanceManagerFactory() {
-    }
-
-    public static KnowledgeInstanceManager getTimeInstanceManager(String path) {
-        return getTimeInstanceManager(path, "MultilayerPerceptron");
-    }
-
-    public static KnowledgeInstanceManager getBatteryInstanceManager(String path) {
-        return getBatteryInstanceManager(path, "MultilayerPerceptron");
     }
 
     public static KnowledgeInstanceManager getTimeInstanceManager(String path, String classifierName) {
@@ -58,12 +52,17 @@ public class KnowledgeInstanceManagerFactory {
             return new MultilayerPerceptron();
         else if (classifierName.equals("J48"))
             return new J48();
-        else if (classifierName.equals("NaiveBayes"))
+        else if (classifierName.equals("RandomForest")) {
+            return new RandomForest();
+        } else if (classifierName.equals("LogisticRegression")) {
+            return new SimpleLogistic();
+        } else if (classifierName.equals("NaiveBayes")) {
             return new NaiveBayes();
-        else if (classifierName.equals("MultilayerPerceptron"))
+        } else if (classifierName.equals("MultilayerPerceptron")) {
             return new MultilayerPerceptron();
-        else
+        } else {
             return new MultilayerPerceptron();
+        }
     }
 
     /**

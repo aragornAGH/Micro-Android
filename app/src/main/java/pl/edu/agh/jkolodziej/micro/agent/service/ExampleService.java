@@ -19,7 +19,6 @@ import pl.edu.agh.jkolodziej.micro.agent.role.provider.AWSProviderRole;
 import pl.edu.agh.jkolodziej.micro.agent.role.provider.AndroidProviderRole;
 import pl.edu.agh.jkolodziej.micro.agent.role.requester.AddIntentRequestRole;
 import pl.edu.agh.jkolodziej.micro.agent.role.requester.FromFileIntentRequestRole;
-import pl.edu.agh.jkolodziej.micro.agent.roles.ProviderRole;
 
 /**
  * @author - Jakub Kołodziej
@@ -127,7 +126,8 @@ public class ExampleService extends IntentService {
                     SystemAgentLoader.newAgent(fromFileClient, "requester-android-from-file");
                 }
                 classLoader = MicroConfigLoader.class.getClassLoader();
-                stream = classLoader.getResourceAsStream("ocr/sample_ocr.jpg");
+                String fileName = intent.getStringExtra("fileName");
+                stream = classLoader.getResourceAsStream("ocr/" + fileName);
                 try {
                     fromFileClient.setBytes(ByteStreams.toByteArray(stream));
                     fromFileClient.startOCR();

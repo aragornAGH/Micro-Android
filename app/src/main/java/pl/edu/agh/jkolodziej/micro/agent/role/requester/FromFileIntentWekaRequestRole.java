@@ -13,12 +13,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import pl.edu.agh.jkolodziej.micro.agent.BatteryUtils;
+import pl.edu.agh.jkolodziej.micro.agent.enums.ConnectionType;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskDestination;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.CipherDataHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.ConnectionTypeHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.DestinationMapper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.IntentParametersHelper;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ServiceIntent;
 import pl.edu.agh.jkolodziej.micro.weka.params.LearningParameters;
@@ -50,11 +52,11 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
 
     }
 
-    protected void setDataAndSendMessage(ServiceIntent intent, TaskType taskType, ExecutionPredictor predictor) throws Exception {
+    protected void setDataAndSendMessage(ServiceIntent intent, TaskType taskType, ExecutionPredictor predictor, ConnectionType connectionType) throws Exception {
         IS_BUSY = true;
         MicroMessage message = new MicroMessage();
         intent.setData(CipherDataHelper.encryptByteArray(bytes));
-        intent.setStartTime(System.nanoTime());
+        intent.setStartTime(System.currentTimeMillis());
         intent.setStartBattery(PowerTutorFacade.getInstance(mContext, "energy").getTotalPowerForUid());
         intent.setConnectionType(ConnectionTypeHelper.getConnectionType(mContext));
         if (((WifiManager) mContext.getSystemService(Context.WIFI_SERVICE)).isWifiEnabled()) {
@@ -73,19 +75,34 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
         learningParameters.setResolution(intent.getResolution());
         learningParameters.setFileSize(intent.getFileSize());
         learningParameters.setConnectionType(intent.getConnectionType());
-        TaskDestination taskDestination = predictor.getTaskDestination(learningParameters, 1, 0);
+        TaskDestination taskDestination = predictor.getTaskDestination(learningParameters, TestSettings.TIME_WEIGHT, TestSettings.BATTERY_WEIGHT);
         intent.setTaskDestination(taskDestination);
 
-        message.setRecipient(DestinationMapper.getAgentNameByDestination(taskDestination));
-        Logger.getAnonymousLogger().log(Level.INFO, "WYBRANO DESTYNACJE: "
+        Logger.getAnonymousLogger().log(Level.INFO, "WYBRANO DESTYNACJE(" + bytes.length + "b): "
                 + taskDestination.name() + "->" + message.getRecipient());
+
+        if ((TaskDestination.CLOUD == taskDestination && ConnectionType.NONE == connectionType)
+                || (TaskDestination.DOCKER == taskDestination && ConnectionType.WIFI != connectionType)) {
+            testsContext.appendResult(learningParameters,
+                    new Measurement.Result(false, Long.MAX_VALUE,
+                            Long.MAX_VALUE,
+                            100.0,
+                            intent.getConnectionType(),
+                            learningParameters,
+                            true),
+                    intent.getResult());
+            IS_BUSY = false;
+            return;
+        }
+
+        message.setRecipient(DestinationMapper.getAgentNameByDestination(taskDestination));
 
         message.setIntent(intent);
         send(message);
     }
 
-    public void startOCR(ExecutionPredictor executionPredictor) throws Exception {
-        setDataAndSendMessage(new OCRIntent(), TaskType.OCR, executionPredictor);
+    public void startOCR(ExecutionPredictor executionPredictor, ConnectionType connectionType) throws Exception {
+        setDataAndSendMessage(new OCRIntent(), TaskType.OCR, executionPredictor, connectionType);
     }
 
     @Override
@@ -98,7 +115,7 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
         params.setResolution(intent.getResolution());
         params.setWifiStrength(intent.getWifiPowerSignal());
 
-        long endTime = intent.getEndTime() != null ? intent.getEndTime() : System.nanoTime();
+        long endTime = intent.getEndTime() != null ? intent.getEndTime() : System.currentTimeMillis();
         long batteryState = intent.getEndBattery() != 0L ? intent.getEndBattery() :
                 PowerTutorFacade.getInstance(mContext, "energy").getTotalPowerForUid();
 

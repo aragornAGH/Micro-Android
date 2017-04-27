@@ -1,11 +1,14 @@
 package pl.edu.agh.jkolodziej.micro.weka.test.action;
 
+import java.io.Serializable;
+
+import pl.edu.agh.jkolodziej.micro.agent.enums.ConnectionType;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 
 /**
  * @author - Jakub Kołodziej
  */
-public class SingleTest implements Action {
+public class SingleTest implements Action, Serializable {
     public static final String TAG_NAME = "test";
     public static final String NUMBER_OF_TESTS_ATTRIBUTE = "numberOfTests";
     public static final String IGNORED_ATTRIBUTE = "ignored";
@@ -18,17 +21,27 @@ public class SingleTest implements Action {
 
     private final int numberOfTests;
 
+    private String fileName;
+
+    private ConnectionType connectionType;
+
 //    private final Map<String, String> props;
 
-    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored /*,Map<String, String> props*/) {
+    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored, String fileName, ConnectionType connectionType /*,Map<String, String> props*/) {
         this.taskType = taskType;
         this.numberOfTests = numberOfTests;
         this.ignored = ignored;
+        this.fileName = fileName;
+        this.connectionType = connectionType;
 //        this.props = props;
     }
 
     public SingleTest(SingleTest test) {
-        this(test.getTaskType(), test.getNumberOfTests(), test.isIgnored() /*,test.getProps()*/);
+        this(test.getTaskType(), test.getNumberOfTests(), test.isIgnored(), test.getFileName(), test.getConnectionType()/*,test.getProps()*/);
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     public int getNumberOfTests() {
@@ -43,7 +56,19 @@ public class SingleTest implements Action {
         ignored = true;
     }
 
-//    public Map<String, String> getProps() {
+    public ConnectionType getConnectionType() {
+        return connectionType;
+    }
+
+    public void setConnectionType(ConnectionType connectionType) {
+        this.connectionType = connectionType;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    //    public Map<String, String> getProps() {
 //        return props;
 //    }
 

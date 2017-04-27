@@ -1,8 +1,14 @@
 package pl.edu.agh.jkolodziej.micro.agent.service;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
+import android.support.v4.content.LocalBroadcastManager;
 
+import com.amazonaws.util.IOUtils;
+import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
 import org.nzdis.micro.SystemAgentLoader;
@@ -11,11 +17,21 @@ import org.nzdis.micro.bootloader.MicroConfigLoader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
+import pl.edu.agh.jkolodziej.micro.agent.enums.ConnectionType;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.ConnectionTypeHelper;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings;
 import pl.edu.agh.jkolodziej.micro.agent.role.requester.FromFileIntentWekaRequestRole;
 import pl.edu.agh.jkolodziej.micro.weka.ExecutionPredictorFactory;
 import pl.edu.agh.jkolodziej.micro.weka.KnowledgeInstanceManagerFactory;
@@ -30,6 +46,10 @@ import pl.edu.agh.jkolodziej.micro.weka.test.action.Action;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.NextRound;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.SingleTest;
 
+import static pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings.INTERNET_CONNECTION_NEED_TO_CHANGE;
+import static pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings.ROUND_AMOUNT;
+import static pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings.SERIES_AMOUNT;
+
 /**
  * @author - Jakub Kołodziej
  */
@@ -39,6 +59,7 @@ public class TestAgentService extends IntentService {
     private final TestsConfiguration testsConfiguration;
     private static ExecutionPredictor executionPredictor;
     private static TestsContext testsContext;
+
 
     public TestAgentService() {
         this("AGENT_TEST_SERVICE");
@@ -60,27 +81,36 @@ public class TestAgentService extends IntentService {
         KnowledgeInstanceManager timeInstanceManager =
                 KnowledgeInstanceManagerFactory.getTimeInstanceManager(
                         AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/time.file",
-                        "J48");
+                        TestSettings.CLASSIFIER_NAME);
         KnowledgeInstanceManager batteryInstanceManager =
                 KnowledgeInstanceManagerFactory.getBatteryInstanceManager(
                         AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/battery.file",
-                        "J48");
+                        TestSettings.CLASSIFIER_NAME);
         return ExecutionPredictorFactory.createPredictor(timeInstanceManager,
                 batteryInstanceManager);
     }
 
     private TestsConfiguration makeTestConfiguration() {
-        List<Action> actions = new ArrayList<Action>();
-        actions.add(new SingleTest(TaskType.OCR, 3, false));
+//        List<Action> actions = ActionFactory.getRandomlyActions(TestSettings.ACTION_PER_ROUND_AMOUNT);
+        List<Action> actions = Lists.newArrayList();
+        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr2.jpg", ConnectionType.LTE_4G));
+        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr2.jpg", ConnectionType.WIFI));
+        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr2.jpg", ConnectionType.NONE));
+//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr4.jpg"));
+//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr5.jpg"));
+//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr6.jpg"));
+//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr7.jpg"));
+//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr8.jpg"));
+//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr9.jpg"));
+//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr10.jpg"));
+
         return new TestsConfiguration.Builder().setTestDirectory(new File(
                 AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/result.csv"))
-                .setSeries(1)
-                .setRounds(3)
-                .setWarmup(1)
+                .setSeries(SERIES_AMOUNT)
+                .setRounds(ROUND_AMOUNT)
                 .setTestName("test")
                 .setActions(actions)
-                .setClassifierName("J48").build();
-
+                .setClassifierName(TestSettings.CLASSIFIER_NAME).build();
     }
 
     @Override
@@ -90,12 +120,18 @@ public class TestAgentService extends IntentService {
             SystemAgentLoader.newAgent(fromFileClient, "requester-android-from-file-test");
         }
 
+        try {
+            execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void setBytesFromFile(String fileName) {
         ClassLoader classLoader = MicroConfigLoader.class.getClassLoader();
-        InputStream stream = classLoader.getResourceAsStream("ocr/sample_ocr.jpg");
+        InputStream stream = classLoader.getResourceAsStream("ocr/" + fileName);
         try {
             fromFileClient.setBytes(ByteStreams.toByteArray(stream));
-            execute();
-//            fromFileClient.startOCR();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -113,7 +149,28 @@ public class TestAgentService extends IntentService {
         execute(testsContext);
     }
 
-    public static void execute(TestsContext context) throws Exception {
+    public void runTestInValidateConnectionType(final TestsContext context, final SingleTest test) throws Exception {
+        if (!isConnectionTypeCorrect(context.getContext(), test.getConnectionType())) {
+            INTERNET_CONNECTION_NEED_TO_CHANGE = true;
+
+            Intent changeConnectionIntent = new Intent(MainActivity.ChangeConnectionServiceReceiver.CHANGE_CONNECTION);
+            changeConnectionIntent.putExtra("test", test);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(changeConnectionIntent);
+
+            while (INTERNET_CONNECTION_NEED_TO_CHANGE) {
+                Thread.sleep(1000);
+            }
+            if (TaskType.OCR == test.getTaskType()) {
+                executeOcr(context, test, executionPredictor);
+            }
+        } else {
+            if (TaskType.OCR == test.getTaskType()) {
+                executeOcr(context, test, executionPredictor);
+            }
+        }
+    }
+
+    public void execute(TestsContext context) throws Exception {
         Action action = context.getAction();
 
         if (action == null) {
@@ -128,13 +185,14 @@ public class TestAgentService extends IntentService {
 //            } else
             if (action instanceof NextRound) {
                 updateKnowledge(context);
+//                context.getTestsConfiguration().setActions(ActionFactory.getRandomlyActions(TestSettings.ACTION_PER_ROUND_AMOUNT));
 //            } else if (action instanceof NextSeries) {
 //                clearKnowledge(context);
             } else {
                 SingleTest test = (SingleTest) action;
-                if (TaskType.OCR == test.getTaskType()) {
-                    executeOcr(context, test, executionPredictor);
-                }
+                Logger.getAnonymousLogger().log(Level.INFO, "Filename:" + test.getFileName()
+                        + ", connection type:" + test.getConnectionType());
+                runTestInValidateConnectionType(context, test);
 //                else {
 //                    executeFr(test, context);
 //                }
@@ -142,23 +200,115 @@ public class TestAgentService extends IntentService {
         }
     }
 
-    private static void executeOcr(TestsContext testsContext, SingleTest singleTest, ExecutionPredictor executionPredictor) throws Exception {
-        fromFileClient.startOCR(executionPredictor);
+    public boolean isConnectionTypeCorrect(final Context ctx, final ConnectionType connectionType) {
+        try {
+            final Flag flag = new Flag();
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        setNetworkConnection(ctx, connectionType);
+                        flag.raiseFlag();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+            while (!flag.isFlagRaised()) {
+                Thread.sleep(100);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return connectionType == ConnectionTypeHelper.getConnectionType(getApplicationContext());
+    }
+
+
+    private void setNetworkConnection(Context ctx, ConnectionType connectionType) throws Exception {
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+
+        Thread.sleep(5000);
+
+        if (ConnectionType.WIFI == connectionType) {
+            wifiManager.setWifiEnabled(true);
+            setMobileDataEnabled(ctx, false);
+            Thread.sleep(10000);
+        } else if (ConnectionType.NONE == connectionType) {
+            wifiManager.setWifiEnabled(false);
+            setMobileDataEnabled(ctx, false);
+        } else {
+            wifiManager.setWifiEnabled(false);
+            setMobileDataEnabled(ctx, true);
+        }
+
+    }
+
+    private void setMobileDataEnabled(Context context, boolean enabled) throws Exception {
+        final ConnectivityManager conman =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final Class conmanClass = Class.forName(conman.getClass().getName());
+        final Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
+        iConnectivityManagerField.setAccessible(true);
+        final Object iConnectivityManager = iConnectivityManagerField.get(conman);
+        final Class iConnectivityManagerClass = Class.forName(
+                iConnectivityManager.getClass().getName());
+        Class[] cArg = new Class[2];
+        cArg[0] = String.class;
+        cArg[1] = Boolean.TYPE;
+        final Method setMobileDataEnabledMethod = iConnectivityManagerClass
+                .getDeclaredMethod("setMobileDataEnabled", cArg);
+        setMobileDataEnabledMethod.setAccessible(true);
+
+
+        Object[] pArg = new Object[2];
+        pArg[0] = context.getPackageName();
+        pArg[1] = enabled;
+        setMobileDataEnabledMethod.invoke(iConnectivityManager, pArg);
+    }
+
+    private boolean isConnected(String url) {
+        try {
+            InputStream is = (new URL(url)).openStream();
+            String content = IOUtils.toString(is);
+            is.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private static class Flag {
+        private boolean flag = false;
+
+        private void raiseFlag() {
+            flag = true;
+        }
+
+        private boolean isFlagRaised() {
+            return flag;
+        }
+    }
+
+    private void executeOcr(TestsContext testsContext, SingleTest singleTest, ExecutionPredictor executionPredictor) throws Exception {
+        setBytesFromFile(singleTest.getFileName());
+        fromFileClient.startOCR(executionPredictor, singleTest.getConnectionType());
         while (FromFileIntentWekaRequestRole.isBusy()) {
             Thread.sleep(1000);
         }
         execute(testsContext);
     }
 
-    private static void updateKnowledge(TestsContext context) throws Exception {
+    private void updateKnowledge(TestsContext context) throws Exception {
 
         String knowledgeTimeFileLocation = AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/time.file";
         String knowledgeBatteryFileLocation = AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/battery.file";
 
         KnowledgeInstanceManager knowledgeTimeInstanceManager = KnowledgeInstanceManagerFactory
-                .getTimeInstanceManager(knowledgeTimeFileLocation, "J48");
+                .getTimeInstanceManager(knowledgeTimeFileLocation, TestSettings.CLASSIFIER_NAME);
         KnowledgeInstanceManager knowledgeBatteryInstanceManager = KnowledgeInstanceManagerFactory
-                .getBatteryInstanceManager(knowledgeBatteryFileLocation, "J48");
+                .getBatteryInstanceManager(knowledgeBatteryFileLocation, TestSettings.CLASSIFIER_NAME);
 
         for (ResultsContainer.ResultData data : context.getResultsContainer().getLastRoundResults()) {
             LearningParameters params = data.getParams();
@@ -175,13 +325,15 @@ public class TestAgentService extends IntentService {
         String knowledgeTimeFileLocation = AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/time.file";
         String knowledgeBatteryFileLocation = AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/battery.file";
         KnowledgeInstanceManager batteryInstanceManager = KnowledgeInstanceManagerFactory
-                .getBatteryInstanceManager(knowledgeBatteryFileLocation, "J48");
+                .getBatteryInstanceManager(knowledgeBatteryFileLocation, TestSettings.CLASSIFIER_NAME);
         KnowledgeInstanceManager timeInstanceManager = KnowledgeInstanceManagerFactory
-                .getTimeInstanceManager(knowledgeTimeFileLocation, "J48");
+                .getTimeInstanceManager(knowledgeTimeFileLocation, TestSettings.CLASSIFIER_NAME);
 
-        batteryInstanceManager.writeDataFile(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY, "battery.arff"));
-        timeInstanceManager.writeDataFile(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY, "time.arff"));
-
+        batteryInstanceManager.writeDataFile(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY, "battery_"
+                + new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss").format(new Date()) + ".arff"));
+        timeInstanceManager.writeDataFile(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY, "time"
+                + new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss").format(new Date()) + ".arff"));
+        Logger.getAnonymousLogger().log(Level.INFO, "End of TESTS!");
 //        callback.finishTests();
     }
 }

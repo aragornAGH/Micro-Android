@@ -14,7 +14,7 @@ public class TestsConfiguration {
     private final int warmup;
     private final int series;
     private final int rounds;
-    private final List<Action> actions;
+    private List<Action> actions;
 
     private final String classifierName;
 
@@ -51,6 +51,10 @@ public class TestsConfiguration {
 
     public List<Action> getActions() {
         return actions;
+    }
+
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
     }
 
     public String getClassifierName() {

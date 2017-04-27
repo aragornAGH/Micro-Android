@@ -64,16 +64,22 @@ public class ResultsContainer {
         List<ResultData> results = getSpecificRoundResults(round, series);
         for (ResultData resultData : results) {
             Measurement.Result result = resultData.getResult();
-            if (!result.isErrorOccured() && result.getParams().getFileSize() == problemSize
-                    && result.getParams().getTaskType() == type) {
-                maxTime = result.getTime();
-                maxEnergy = result.getEnergy();
-                maxPercentOfBattery = result.getPercentageUsageOfBattery();
+            if (!result.isErrorOccured()) {
+                if (maxTime < result.getTime()){
+                    maxTime = result.getTime();
+                }
+                if (maxEnergy < result.getEnergy()){
+                    maxEnergy = result.getEnergy();
+                }
+                if (maxPercentOfBattery < result.getPercentageUsageOfBattery()){
+                    maxPercentOfBattery = result.getPercentageUsageOfBattery();
+                }
             }
         }
         if (maxEnergy == 0) {
-            throw new IllegalStateException(String.format("Unable to calculate penalty. " +
-                    "No correct result in round: %d, series: %d", round, series));
+            maxEnergy = Long.MAX_VALUE;
+            maxPercentOfBattery = 100.0;
+            maxTime = Long.MAX_VALUE;
         }
         return new CalculatedPenalty(maxTime, maxEnergy, maxPercentOfBattery);
     }

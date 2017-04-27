@@ -2,7 +2,10 @@ package pl.edu.agh.jkolodziej.micro.weka.test;
 
 import android.content.Context;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import pl.edu.agh.jkolodziej.micro.weka.params.LearningParameters;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.Action;
@@ -12,14 +15,14 @@ import pl.edu.agh.jkolodziej.micro.weka.test.action.SingleTest;
 /**
  * @author - Jakub Kołodziej
  */
-public class TestsContext {
+public class TestsContext implements Serializable{
     private final ResultsContainer resultsContainer = new ResultsContainer();
     private final TestsConfiguration testsConfiguration;
     private final Context context;
     private Cursor cursor;
 
     private final int numberOfRounds;
-//    private final int numberOfSeries;
+    //    private final int numberOfSeries;
     private int round = 0;
     private int series = 0;
     private int sequenceInRound = 0;
@@ -30,6 +33,10 @@ public class TestsContext {
         this.numberOfRounds = testsConfiguration.getRounds();
 //        this.numberOfSeries = testsConfiguration.getSeries();
         this.cursor = new Cursor(testsConfiguration.getWarmup(), testsConfiguration.getActions());
+    }
+
+    public TestsConfiguration getTestsConfiguration() {
+        return testsConfiguration;
     }
 
     public int getTotalNumberOfTests() {
@@ -89,6 +96,7 @@ public class TestsContext {
             } else {
                 sequenceInRound++;
             }
+            Logger.getAnonymousLogger().log(Level.INFO, "--> Sequence in round " + round + ": " + sequenceInRound);
         }
         return action;
     }

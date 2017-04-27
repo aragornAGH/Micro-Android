@@ -1,10 +1,14 @@
 package pl.edu.agh.jkolodziej.micro.weka.predictors;
 
+import com.google.common.collect.Maps;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import pl.edu.agh.jkolodziej.micro.agent.enums.ConnectionType;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskDestination;
 import pl.edu.agh.jkolodziej.micro.weka.managers.KnowledgeInstanceManager;
 import pl.edu.agh.jkolodziej.micro.weka.params.LearningParameters;
@@ -32,18 +36,66 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
         batteryWeight = batteryWeight / weightSum;
 
         List<TaskDestination> taskDestinations = new ArrayList<>();
-        taskDestinations.add(TaskDestination.CLOUD);
-        taskDestinations.add(TaskDestination.DOCKER);
+        if (ConnectionType.WIFI == params.getConnectionType()
+                || ConnectionType.LTE_4G == params.getConnectionType()
+                || ConnectionType.UMTS_3G == params.getConnectionType()
+                || ConnectionType.CDMA_2G == params.getConnectionType()) {
+            taskDestinations.add(TaskDestination.CLOUD);
+        }
+        if (ConnectionType.WIFI == params.getConnectionType()) {
+            taskDestinations.add(TaskDestination.DOCKER);
+        }
         taskDestinations.add(TaskDestination.MOBILE);
 
-        double cloudResult = getExecutionResult(params, TaskDestination.CLOUD.name(), timeWeight, batteryWeight);
-        double mobileResult = getExecutionResult(params, TaskDestination.MOBILE.name(), timeWeight, batteryWeight);
-        double dockerResult = getExecutionResult(params, TaskDestination.DOCKER.name(), timeWeight, batteryWeight);
+        if (random.nextInt(10) == 2) {
+            return taskDestinations.get(random.nextInt(taskDestinations.size()));
+        }
+
+        Map<TaskDestination, Double> unnormalizedTimeResults = Maps.newHashMap();
+
+        double mobileTimeResult = getTimeResult(params, TaskDestination.MOBILE.name());
+        double cloudTimeResult = Double.MAX_VALUE;
+        double dockerTimeResult = Double.MAX_VALUE;
+
+        unnormalizedTimeResults.put(TaskDestination.MOBILE, mobileTimeResult);
+
+        if (taskDestinations.contains(TaskDestination.CLOUD)) {
+            cloudTimeResult = getTimeResult(params, TaskDestination.CLOUD.name());
+        }
+        unnormalizedTimeResults.put(TaskDestination.CLOUD, cloudTimeResult);
+        if (taskDestinations.contains(TaskDestination.DOCKER)) {
+            dockerTimeResult = getTimeResult(params, TaskDestination.DOCKER.name());
+        }
+        unnormalizedTimeResults.put(TaskDestination.DOCKER, dockerTimeResult);
+
+        Map<TaskDestination, Double> unnormalizedBatteryResults = Maps.newHashMap();
+
+        double mobileBatteryResult = getBatteryResult(params, TaskDestination.MOBILE.name());
+        double cloudBatteryResult = Double.MAX_VALUE;
+        double dockerBatteryResult = Double.MAX_VALUE;
+
+        unnormalizedBatteryResults.put(TaskDestination.MOBILE, mobileBatteryResult);
+
+        if (taskDestinations.contains(TaskDestination.CLOUD)) {
+            cloudBatteryResult = getBatteryResult(params, TaskDestination.CLOUD.name());
+        }
+        unnormalizedTimeResults.put(TaskDestination.CLOUD, cloudBatteryResult);
+        if (taskDestinations.contains(TaskDestination.DOCKER)) {
+            dockerBatteryResult = getBatteryResult(params, TaskDestination.DOCKER.name());
+        }
+        unnormalizedTimeResults.put(TaskDestination.DOCKER, dockerBatteryResult);
+
+        Map<TaskDestination, Double> normalizedBatteryResults = normalizeResults(unnormalizedBatteryResults);
+        Map<TaskDestination, Double> normalizedTimeResults = normalizeResults(unnormalizedTimeResults);
+
+        double mobileResult = timeWeight * normalizedTimeResults.get(TaskDestination.MOBILE) + batteryWeight * normalizedBatteryResults.get(TaskDestination.MOBILE);
+        double cloudResult = timeWeight * normalizedTimeResults.get(TaskDestination.CLOUD) + batteryWeight * normalizedBatteryResults.get(TaskDestination.CLOUD);
+        double dockerResult = timeWeight * normalizedTimeResults.get(TaskDestination.DOCKER) + batteryWeight * normalizedBatteryResults.get(TaskDestination.DOCKER);
 
         // equals result
         if (BigDecimal.valueOf(cloudResult).equals(BigDecimal.valueOf(mobileResult)) &&
                 BigDecimal.valueOf(mobileResult).equals(BigDecimal.valueOf(dockerResult))) {
-            return taskDestinations.get(random.nextInt(3));
+            return taskDestinations.get(random.nextInt(taskDestinations.size()));
         } else {
             // cloud the best
             if (BigDecimal.valueOf(Math.min(cloudResult, Math.min(dockerResult, mobileResult))).equals(BigDecimal.valueOf(cloudResult))) {
@@ -86,6 +138,45 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
             }
         }
         return null;
+    }
+
+    private Map<TaskDestination, Double> normalizeResults(Map<TaskDestination, Double> unnormalizedResults) {
+        double maxValue = 0.0;
+        for (Map.Entry<TaskDestination, Double> entry : unnormalizedResults.entrySet()) {
+            if (Double.MAX_VALUE != entry.getValue() && maxValue < entry.getValue()) {
+                maxValue = entry.getValue();
+            }
+        }
+        for (Map.Entry<TaskDestination, Double> entry : unnormalizedResults.entrySet()) {
+            if (Double.MAX_VALUE != entry.getValue()) {
+                unnormalizedResults.put(entry.getKey(), entry.getValue() / maxValue);
+            }
+        }
+        return unnormalizedResults;
+    }
+
+    private double getTimeResult(LearningParameters params, String destination) {
+        params.setDestination(destination);
+
+        Instance timeInstance = timeInstanceManager.createInstanceForPrediction(params);
+        try {
+            return timeInstanceManager.classify(timeInstance);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Double.MAX_VALUE;
+        }
+    }
+
+    private double getBatteryResult(LearningParameters params, String destination) {
+        params.setDestination(destination);
+
+        Instance batteryInstance = batteryInstanceManager.createInstanceForPrediction(params);
+        try {
+            return batteryInstanceManager.classify(batteryInstance);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Double.MAX_VALUE;
+        }
     }
 
     private double getExecutionResult(LearningParameters params, String destination, double timeWeight, double batteryWeight) {

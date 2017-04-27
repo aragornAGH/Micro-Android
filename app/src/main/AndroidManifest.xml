@@ -2,27 +2,35 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="pl.edu.agh.jkolodziej.micro.agent">
 
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name="android.support.multidex.MultiDexApplication"
         android:allowBackup="true"
+        android:hardwareAccelerated="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:hardwareAccelerated="false"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.ExampleService" />
-        <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.TestAgentService"/>
+        <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.TestAgentService" />
+
         <activity android:name="pl.edu.agh.jkolodziej.micro.agent.act.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="pl.edu.agh.jkolodziej.micro.agent.service.TestAgentService$MyDialog"
+            android:theme="@android:style/Theme.Dialog"></activity>
     </application>
 </manifest>

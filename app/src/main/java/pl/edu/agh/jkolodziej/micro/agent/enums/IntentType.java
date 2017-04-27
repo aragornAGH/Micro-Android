@@ -1,7 +1,7 @@
 package pl.edu.agh.jkolodziej.micro.agent.enums;
 
 /**
- * Created by Kołacz.
+ * @author Jakub Kołodziej
  */
 
 public enum IntentType {

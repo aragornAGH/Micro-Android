@@ -11,21 +11,16 @@ import com.google.common.collect.Maps;
 import org.nzdis.micro.DefaultSocialRole;
 import org.nzdis.micro.MicroMessage;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import pl.edu.agh.jkolodziej.micro.agent.PowerTutorHelper;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
-import pl.edu.agh.jkolodziej.micro.agent.enums.TaskDestination;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.CipherDataHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.ConnectionTypeHelper;
-import pl.edu.agh.jkolodziej.micro.agent.helpers.DestinationMapper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.IntentParametersHelper;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
@@ -34,7 +29,7 @@ import pl.edu.agh.jkolodziej.micro.agent.intents.ServiceIntent;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
 
 /**
- * Created by Kołacz.
+ * @author Jakub Kołodziej
  */
 
 public class FromFileIntentRequestRole extends DefaultSocialRole {
@@ -64,7 +59,7 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
     protected void setDataAndSendMessage(ServiceIntent intent, TaskType taskType) throws Exception {
         MicroMessage message = new MicroMessage();
         intent.setData(CipherDataHelper.encryptByteArray(bytes));
-        intent.setStartTime(System.nanoTime());
+        intent.setStartTime(System.currentTimeMillis());
         intent.setStartBattery(PowerTutorFacade.getInstance(mContext, "energy").getTotalPowerForUid());
         intent.setConnectionType(ConnectionTypeHelper.getConnectionType(mContext));
         if (((WifiManager) mContext.getSystemService(Context.WIFI_SERVICE)).isWifiEnabled()) {
@@ -104,7 +99,7 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
         Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
         responseToClient.putExtra("worker", worker);
         responseToClient.putExtra("result", result);
-        responseToClient.putExtra("duration", System.nanoTime() - intent.getStartTime());
+        responseToClient.putExtra("duration", System.currentTimeMillis() - intent.getStartTime());
         responseToClient.putExtra("batteryPercentage", PowerTutorHelper.getPercentageUsageOfBattery(mContext, intent.getStartBattery()));
         responseToClient.putExtra("intentType", CLASS_INTENT_MAP.get(message.getIntent().getClass()));
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(responseToClient);

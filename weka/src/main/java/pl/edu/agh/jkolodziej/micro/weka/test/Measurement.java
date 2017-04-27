@@ -47,12 +47,18 @@ public class Measurement {
 
         public Result(boolean ignored, long time, long energy, double percentageUsageOfBattery,
                       ConnectionType connectionType, LearningParameters params) {
+            this(ignored, time, energy, percentageUsageOfBattery, connectionType, params, false);
+        }
+
+        public Result(boolean ignored, long time, long energy, double percentageUsageOfBattery,
+                      ConnectionType connectionType, LearningParameters params, boolean errorOccured) {
             this.ignored = ignored;
             this.time = time;
             this.energy = energy;
             this.percentageUsageOfBattery = percentageUsageOfBattery;
             this.connectionType = connectionType;
             this.params = params;
+            this.errorOccured = errorOccured;
             params.setExecutionTime(time);
             params.setBatteryConsumption(energy);
         }
