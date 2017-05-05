@@ -10,19 +10,20 @@ import java.util.logging.Logger;
 import pl.edu.agh.jkolodziej.micro.weka.params.LearningParameters;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.Action;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.NextRound;
+import pl.edu.agh.jkolodziej.micro.weka.test.action.NextSeries;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.SingleTest;
 
 /**
  * @author - Jakub Kołodziej
  */
-public class TestsContext implements Serializable{
+public class TestsContext implements Serializable {
     private final ResultsContainer resultsContainer = new ResultsContainer();
     private final TestsConfiguration testsConfiguration;
     private final Context context;
     private Cursor cursor;
 
     private final int numberOfRounds;
-    //    private final int numberOfSeries;
+    private final int numberOfSeries;
     private int round = 0;
     private int series = 0;
     private int sequenceInRound = 0;
@@ -31,7 +32,7 @@ public class TestsContext implements Serializable{
         this.testsConfiguration = testsConfiguration;
         this.context = context;
         this.numberOfRounds = testsConfiguration.getRounds();
-//        this.numberOfSeries = testsConfiguration.getSeries();
+        this.numberOfSeries = testsConfiguration.getSeries();
         this.cursor = new Cursor(testsConfiguration.getWarmup(), testsConfiguration.getActions());
     }
 
@@ -82,12 +83,12 @@ public class TestsContext implements Serializable{
                 if (round != numberOfRounds)
                     return new NextRound();
             }
-//            if (series < numberOfSeries) {
-//                series++;
-//                round = 0;
-//                shiftCursor();
-//                return series == numberOfSeries ? null : new NextSeries();
-//            }
+            if (series < numberOfSeries) {
+                series++;
+                round = 0;
+                shiftCursor();
+                return series == numberOfSeries ? null : new NextSeries();
+            }
         } else {
             if (action instanceof SingleTest) {
                 SingleTest singleTest = (SingleTest) action;
@@ -96,7 +97,7 @@ public class TestsContext implements Serializable{
             } else {
                 sequenceInRound++;
             }
-            Logger.getAnonymousLogger().log(Level.INFO, "--> Sequence in round " + round + ": " + sequenceInRound);
+            Logger.getAnonymousLogger().log(Level.INFO, "--> Serie: " + (series + 1) + "; Round: " + (round + 1) + "; Sequence in round: " + sequenceInRound);
         }
         return action;
     }
@@ -159,17 +160,9 @@ public class TestsContext implements Serializable{
                         return action;
                     }
                 }
-                //if (action instanceof ConnectionChange) {
-                //actionNumber++;
-                //return action;
-                //}
                 actionNumber++;
                 sequence = 0;
                 warmupsLeftToPerform = numberOfWarmups;
-
-//                if (action instanceof ConnectionChange) {
-//                    return action;
-//                }
             }
             return action;
         }

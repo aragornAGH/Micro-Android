@@ -79,10 +79,11 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
                 : predictor.getTaskDestination(learningParameters, TestSettings.TIME_WEIGHT, TestSettings.BATTERY_WEIGHT);
         intent.setTaskDestination(taskDestination);
 
-        Logger.getAnonymousLogger().log(Level.INFO, "WYBRANO DESTYNACJE(" + bytes.length + "b): "
+        message.setRecipient(DestinationMapper.getAgentNameByDestination(taskDestination));
+
+        Logger.getAnonymousLogger().log(Level.INFO, "CHOOSE DESTINATION(" + bytes.length + "b): "
                 + taskDestination.name() + "->" + message.getRecipient());
 
-        message.setRecipient(DestinationMapper.getAgentNameByDestination(taskDestination));
 
         message.setIntent(intent);
         send(message);
@@ -120,6 +121,8 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
                         intent.getConnectionType(),
                         params),
                 intent.getResult());
+        Logger.getAnonymousLogger().log(Level.INFO, "Response: time - " + (endTime - intent.getStartTime()) + " ms, battery - "
+                + (batteryState - intent.getStartBattery()) + "mJ");
         IS_BUSY = false;
     }
 

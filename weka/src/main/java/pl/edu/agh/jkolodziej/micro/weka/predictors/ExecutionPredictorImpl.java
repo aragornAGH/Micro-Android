@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import pl.edu.agh.jkolodziej.micro.agent.enums.ConnectionType;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskDestination;
@@ -48,6 +50,7 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
         taskDestinations.add(TaskDestination.MOBILE);
 
         if (random.nextInt(10) == 2) {
+            Logger.getAnonymousLogger().log(Level.INFO, "Evolutionary choice of execution environment");
             return taskDestinations.get(random.nextInt(taskDestinations.size()));
         }
 
@@ -79,11 +82,11 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
         if (taskDestinations.contains(TaskDestination.CLOUD)) {
             cloudBatteryResult = getBatteryResult(params, TaskDestination.CLOUD.name());
         }
-        unnormalizedTimeResults.put(TaskDestination.CLOUD, cloudBatteryResult);
+        unnormalizedBatteryResults.put(TaskDestination.CLOUD, cloudBatteryResult);
         if (taskDestinations.contains(TaskDestination.DOCKER)) {
             dockerBatteryResult = getBatteryResult(params, TaskDestination.DOCKER.name());
         }
-        unnormalizedTimeResults.put(TaskDestination.DOCKER, dockerBatteryResult);
+        unnormalizedBatteryResults.put(TaskDestination.DOCKER, dockerBatteryResult);
 
         Map<TaskDestination, Double> normalizedBatteryResults = normalizeResults(unnormalizedBatteryResults);
         Map<TaskDestination, Double> normalizedTimeResults = normalizeResults(unnormalizedTimeResults);

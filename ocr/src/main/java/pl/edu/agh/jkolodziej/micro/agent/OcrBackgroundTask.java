@@ -15,8 +15,12 @@ public class OcrBackgroundTask {
         baseAPI.init(tessDataPath, "pol", TessBaseAPI.OEM_TESSERACT_ONLY);
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        baseAPI.setImage(BitmapFactory.decodeByteArray(imageFile, 0, imageFile.length, options));
+        Bitmap bitmap = BitmapFactory.decodeByteArray(imageFile, 0, imageFile.length, options);
+        baseAPI.setImage(bitmap);
 
-        return baseAPI.getUTF8Text().replaceAll("[^A-Za-z0-9 \n]", "");
+        String result = baseAPI.getUTF8Text().replaceAll("[^A-Za-z0-9 \n]", "");
+        bitmap.recycle();
+        baseAPI.end();
+        return result;
     }
 }

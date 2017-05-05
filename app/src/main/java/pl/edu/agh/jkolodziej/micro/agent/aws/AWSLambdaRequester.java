@@ -11,6 +11,9 @@ import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunctionException;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import pl.edu.agh.jkolodziej.micro.agent.BatteryUtils;
 import pl.edu.agh.jkolodziej.micro.agent.PowerTutorHelper;
 import pl.edu.agh.jkolodziej.micro.agent.R;
@@ -145,6 +148,8 @@ public class AWSLambdaRequester {
                             serviceIntent.getConnectionType(),
                             params),
                     result.getResult());
+            Logger.getAnonymousLogger().log(Level.INFO, "Response: time - " + (endTime - serviceIntent.getStartTime()) + " ms, battery - "
+                    + (batteryState - serviceIntent.getStartBattery()) + "mJ");
             FromFileIntentWekaRequestRole.IS_BUSY = false;
         }
         Double batteryPercentage = PowerTutorHelper.getPercentageUsageOfBattery(mContext, result.getStartBattery());

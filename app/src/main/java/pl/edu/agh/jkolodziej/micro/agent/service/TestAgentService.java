@@ -8,11 +8,9 @@ import android.net.wifi.WifiManager;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.amazonaws.util.IOUtils;
-import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
 import org.nzdis.micro.SystemAgentLoader;
-import org.nzdis.micro.bootloader.MicroConfigLoader;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,8 +29,10 @@ import pl.edu.agh.jkolodziej.micro.agent.enums.ConnectionType;
 import pl.edu.agh.jkolodziej.micro.agent.enums.TaskType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.ConnectionTypeHelper;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.ImageRawIdHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings;
 import pl.edu.agh.jkolodziej.micro.agent.role.requester.FromFileIntentWekaRequestRole;
+import pl.edu.agh.jkolodziej.micro.agent.test.ActionFactory;
 import pl.edu.agh.jkolodziej.micro.weka.ExecutionPredictorFactory;
 import pl.edu.agh.jkolodziej.micro.weka.KnowledgeInstanceManagerFactory;
 import pl.edu.agh.jkolodziej.micro.weka.managers.KnowledgeInstanceManager;
@@ -44,6 +44,7 @@ import pl.edu.agh.jkolodziej.micro.weka.test.TestsConfiguration;
 import pl.edu.agh.jkolodziej.micro.weka.test.TestsContext;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.Action;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.NextRound;
+import pl.edu.agh.jkolodziej.micro.weka.test.action.NextSeries;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.SingleTest;
 
 import static pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings.INTERNET_CONNECTION_NEED_TO_CHANGE;
@@ -91,18 +92,7 @@ public class TestAgentService extends IntentService {
     }
 
     private TestsConfiguration makeTestConfiguration() {
-//        List<Action> actions = ActionFactory.getRandomlyActions(TestSettings.ACTION_PER_ROUND_AMOUNT);
-        List<Action> actions = Lists.newArrayList();
-        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr2.jpg", ConnectionType.LTE_4G));
-        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr2.jpg", ConnectionType.WIFI));
-        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr2.jpg", ConnectionType.NONE));
-//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr4.jpg"));
-//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr5.jpg"));
-//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr6.jpg"));
-//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr7.jpg"));
-//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr8.jpg"));
-//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr9.jpg"));
-//        actions.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr10.jpg"));
+        List<Action> actions = ActionFactory.getTestActions();
 
         return new TestsConfiguration.Builder().setTestDirectory(new File(
                 AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/result.csv"))
@@ -127,9 +117,11 @@ public class TestAgentService extends IntentService {
         }
     }
 
-    private static void setBytesFromFile(String fileName) {
-        ClassLoader classLoader = MicroConfigLoader.class.getClassLoader();
-        InputStream stream = classLoader.getResourceAsStream("ocr/" + fileName);
+    private void setBytesFromFile(String fileName) {
+//        ClassLoader classLoader = MicroConfigLoader.class.getClassLoader();
+        InputStream stream = getApplicationContext().getResources()
+                .openRawResource(ImageRawIdHelper.getRawId(fileName));
+//        InputStream stream = classLoader.getResourceAsStream("ocr/" + fileName);
         try {
             fromFileClient.setBytes(ByteStreams.toByteArray(stream));
         } catch (Exception e) {
@@ -158,7 +150,7 @@ public class TestAgentService extends IntentService {
             LocalBroadcastManager.getInstance(this).sendBroadcast(changeConnectionIntent);
 
             while (INTERNET_CONNECTION_NEED_TO_CHANGE) {
-                Thread.sleep(1000);
+//                Thread.sleep(1000);
             }
             if (TaskType.OCR == test.getTaskType()) {
                 executeOcr(context, test, executionPredictor);
@@ -172,38 +164,38 @@ public class TestAgentService extends IntentService {
 
     public void execute(TestsContext context) throws Exception {
         Action action = context.getAction();
-
-        if (action == null) {
-            ResultsPrinter printer = new ResultsPrinter(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY, "results.csv"), context.getResultsContainer());
-            printer.saveToFile();
-            finishTests();
-        } else {
-            ResultsPrinter printer = new ResultsPrinter(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY, "results.csv"), context.getResultsContainer());
-            printer.saveToFile();
-//            if (action instanceof ConnectionChange) {
-//                changeNetworkType(context, (ConnectionChange) action);
-//            } else
-            if (action instanceof NextRound) {
-                updateKnowledge(context);
-//                context.getTestsConfiguration().setActions(ActionFactory.getRandomlyActions(TestSettings.ACTION_PER_ROUND_AMOUNT));
-//            } else if (action instanceof NextSeries) {
-//                clearKnowledge(context);
-            } else {
-                SingleTest test = (SingleTest) action;
-                Logger.getAnonymousLogger().log(Level.INFO, "Filename:" + test.getFileName()
-                        + ", connection type:" + test.getConnectionType());
-                runTestInValidateConnectionType(context, test);
-//                else {
-//                    executeFr(test, context);
-//                }
-            }
+        while (action != null) {
+            executeAction(context, action);
+            action = context.getAction();
         }
+        ResultsPrinter printer = new ResultsPrinter(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY,
+                "results.csv"), context.getResultsContainer());
+        printer.saveToFile();
+        finishTests();
+    }
+
+
+    private void executeAction(TestsContext context, Action action) throws Exception {
+        ResultsPrinter printer = new ResultsPrinter(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY, "results.csv"), context.getResultsContainer());
+        printer.saveToFile();
+        if (action instanceof NextRound) {
+            updateKnowledge(context);
+        } else if (action instanceof NextSeries) {
+            clearKnowledge(context);
+        } else {
+            SingleTest test = (SingleTest) action;
+            Logger.getAnonymousLogger().log(Level.INFO, "Filename:" + test.getFileName()
+                    + ", connection type:" + test.getConnectionType());
+            runTestInValidateConnectionType(context, test);
+        }
+
     }
 
     public boolean isConnectionTypeCorrect(final Context ctx, final ConnectionType connectionType) {
         try {
             final Flag flag = new Flag();
-            Thread thread = new Thread(new Runnable() {
+//            Thread thread = new Thread(
+            new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -213,10 +205,11 @@ public class TestAgentService extends IntentService {
                         e.printStackTrace();
                     }
                 }
-            });
-            thread.start();
+            }.run();
+//            );
+//            thread.start();
             while (!flag.isFlagRaised()) {
-                Thread.sleep(100);
+//                Thread.sleep(100);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -293,11 +286,11 @@ public class TestAgentService extends IntentService {
 
     private void executeOcr(TestsContext testsContext, SingleTest singleTest, ExecutionPredictor executionPredictor) throws Exception {
         setBytesFromFile(singleTest.getFileName());
-        fromFileClient.startOCR(executionPredictor, singleTest.getConnectionType());
+        fromFileClient.startOCR(executionPredictor, singleTest);
         while (FromFileIntentWekaRequestRole.isBusy()) {
-            Thread.sleep(1000);
+//            Thread.sleep(1000);
         }
-        execute(testsContext);
+//        execute(testsContext);
     }
 
     private void updateKnowledge(TestsContext context) throws Exception {
@@ -318,7 +311,7 @@ public class TestAgentService extends IntentService {
         knowledgeTimeInstanceManager.updateClassifier();
         knowledgeBatteryInstanceManager.updateClassifier();
 
-        execute(context);
+//        execute(context);
     }
 
     private static void finishTests() {
@@ -334,6 +327,14 @@ public class TestAgentService extends IntentService {
         timeInstanceManager.writeDataFile(new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY, "time"
                 + new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss").format(new Date()) + ".arff"));
         Logger.getAnonymousLogger().log(Level.INFO, "End of TESTS!");
-//        callback.finishTests();
+    }
+
+    private void clearKnowledge(TestsContext context) throws Exception {
+
+        KnowledgeInstanceManagerFactory.resetTimeManager(AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/time.file");
+        KnowledgeInstanceManagerFactory.resetBatteryManager(AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/battery.file");
+        this.executionPredictor = createExecutionPredictor();
+
+//        execute(context);
     }
 }

@@ -28,16 +28,18 @@ public class SingleTest implements Action, Serializable {
 
     private TaskDestination taskDestination;
 
-//    private final Map<String, String> props;
 
-    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored, String fileName, ConnectionType connectionType, TaskDestination taskDestination /*,Map<String, String> props*/) {
+    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored, String fileName, ConnectionType connectionType, TaskDestination taskDestination) {
         this.taskType = taskType;
         this.numberOfTests = numberOfTests;
         this.ignored = ignored;
         this.fileName = fileName;
         this.connectionType = connectionType;
         this.taskDestination = taskDestination;
-//        this.props = props;
+    }
+
+    public SingleTest(TaskType taskType, int numberOfTests, boolean ignored, String fileName, ConnectionType connectionType) {
+        this(taskType, numberOfTests, ignored, fileName, connectionType, null);
     }
 
     public SingleTest(SingleTest test) {
@@ -97,5 +99,9 @@ public class SingleTest implements Action, Serializable {
 
     public TaskDestination getTaskDestination() {
         return taskDestination;
+    }
+
+    public void setTaskDestination(TaskDestination taskDestination) {
+        this.taskDestination = taskDestination;
     }
 }
