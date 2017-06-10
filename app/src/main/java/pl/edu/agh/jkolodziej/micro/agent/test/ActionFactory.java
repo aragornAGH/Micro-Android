@@ -31,14 +31,16 @@ public class ActionFactory {
         tenSimpleAction.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr9.jpg", null, null));
         tenSimpleAction.add(new SingleTest(TaskType.OCR, 1, false, "sample_ocr10.jpg", null, null));
 
-        addActionsInConnectionTypeAndTaskDestination(ConnectionType.WIFI, TaskDestination.CLOUD);
+        addActionsInConnectionTypeAndTaskDestination(ConnectionType.WIFI, null);
+        addActionsInConnectionTypeAndTaskDestination(ConnectionType.UMTS_3G, null);
     }
 
     private static void addActionsInConnectionTypeAndTaskDestination(ConnectionType connectionType, TaskDestination taskDestination) {
         for (Action test : ImmutableList.copyOf(tenSimpleAction)) {
-            ((SingleTest) test).setConnectionType(connectionType);
-            ((SingleTest) test).setTaskDestination(taskDestination);
-            testActions.add(test);
+            SingleTest singleTest = new SingleTest(((SingleTest) test));
+            singleTest.setConnectionType(connectionType);
+            singleTest.setTaskDestination(taskDestination);
+            testActions.add(singleTest);
         }
     }
 

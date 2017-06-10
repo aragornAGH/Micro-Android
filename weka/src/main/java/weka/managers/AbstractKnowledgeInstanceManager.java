@@ -8,6 +8,7 @@ import java.io.FileWriter;
 
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.lazy.KStar;
 import weka.classifiers.trees.J48;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Instance;
@@ -90,7 +91,8 @@ public abstract class AbstractKnowledgeInstanceManager<S> implements KnowledgeIn
         try {
             if (classifier instanceof J48
                     || classifier instanceof RandomForest
-                    || classifier instanceof NaiveBayes) {
+                    || classifier instanceof NaiveBayes
+                    || classifier instanceof KStar) {
                 Discretize filter = getDiscretizeFilter(data);
                 trainingData = Filter.useFilter(data, filter);
                 trainingData.setClassIndex(data.numAttributes()-1);

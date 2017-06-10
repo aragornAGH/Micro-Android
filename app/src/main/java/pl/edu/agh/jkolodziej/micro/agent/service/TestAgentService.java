@@ -200,6 +200,7 @@ public class TestAgentService extends IntentService {
                 public void run() {
                     try {
                         setNetworkConnection(ctx, connectionType);
+                        Thread.sleep(4500);
                         flag.raiseFlag();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -209,12 +210,14 @@ public class TestAgentService extends IntentService {
 //            );
 //            thread.start();
             while (!flag.isFlagRaised()) {
-//                Thread.sleep(100);
+                Thread.sleep(3000);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return connectionType == ConnectionTypeHelper.getConnectionType(getApplicationContext());
+        ConnectionType currentConnectionType = ConnectionTypeHelper.getConnectionType(getApplicationContext());
+        Logger.getAnonymousLogger().log(Level.INFO, "Current network state: " + currentConnectionType);
+        return connectionType == currentConnectionType;
     }
 
 

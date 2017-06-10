@@ -7,8 +7,12 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
+
 import org.nzdis.micro.MicroMessage;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -123,6 +127,14 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
                 intent.getResult());
         Logger.getAnonymousLogger().log(Level.INFO, "Response: time - " + (endTime - intent.getStartTime()) + " ms, battery - "
                 + (batteryState - intent.getStartBattery()) + "mJ");
+        try {
+            Files.append("Time;" + (endTime - intent.getStartTime()) + ";Batterry;" + (batteryState - intent.getStartBattery()) +"\n",
+                    TestSettings.RESULT_WRITER_FILE, Charsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+        }
+
         IS_BUSY = false;
     }
 

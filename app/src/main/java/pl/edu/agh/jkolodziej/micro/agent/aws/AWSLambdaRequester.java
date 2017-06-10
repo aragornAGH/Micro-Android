@@ -10,7 +10,10 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunctionException;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,6 +22,7 @@ import pl.edu.agh.jkolodziej.micro.agent.PowerTutorHelper;
 import pl.edu.agh.jkolodziej.micro.agent.R;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
+import pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
@@ -150,6 +154,12 @@ public class AWSLambdaRequester {
                     result.getResult());
             Logger.getAnonymousLogger().log(Level.INFO, "Response: time - " + (endTime - serviceIntent.getStartTime()) + " ms, battery - "
                     + (batteryState - serviceIntent.getStartBattery()) + "mJ");
+            try {
+                Files.append("Time;" + (endTime - serviceIntent.getStartTime()) + ";Batterry;" + (batteryState - serviceIntent.getStartBattery()) + "\n",
+                        TestSettings.RESULT_WRITER_FILE, Charsets.UTF_8);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             FromFileIntentWekaRequestRole.IS_BUSY = false;
         }
         Double batteryPercentage = PowerTutorHelper.getPercentageUsageOfBattery(mContext, result.getStartBattery());

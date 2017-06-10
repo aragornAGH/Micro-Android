@@ -10,6 +10,7 @@ import weka.classifiers.Classifier;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.functions.SimpleLogistic;
+import weka.classifiers.lazy.KStar;
 import weka.classifiers.trees.J48;
 import weka.classifiers.trees.RandomForest;
 
@@ -58,6 +59,8 @@ public class KnowledgeInstanceManagerFactory {
             return new SimpleLogistic();
         } else if (classifierName.equals("NaiveBayes")) {
             return new NaiveBayes();
+        } else if (classifierName.equals("KNN")) {
+            return new KStar();
         } else if (classifierName.equals("MultilayerPerceptron")) {
             return new MultilayerPerceptron();
         } else {

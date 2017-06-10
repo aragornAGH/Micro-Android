@@ -91,9 +91,12 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
         Map<TaskDestination, Double> normalizedBatteryResults = normalizeResults(unnormalizedBatteryResults);
         Map<TaskDestination, Double> normalizedTimeResults = normalizeResults(unnormalizedTimeResults);
 
-        double mobileResult = timeWeight * normalizedTimeResults.get(TaskDestination.MOBILE) + batteryWeight * normalizedBatteryResults.get(TaskDestination.MOBILE);
-        double cloudResult = timeWeight * normalizedTimeResults.get(TaskDestination.CLOUD) + batteryWeight * normalizedBatteryResults.get(TaskDestination.CLOUD);
-        double dockerResult = timeWeight * normalizedTimeResults.get(TaskDestination.DOCKER) + batteryWeight * normalizedBatteryResults.get(TaskDestination.DOCKER);
+        double mobileResult = (Double.MAX_VALUE == normalizedTimeResults.get(TaskDestination.MOBILE) || Double.MAX_VALUE == normalizedBatteryResults.get(TaskDestination.MOBILE))
+                ? Double.MAX_VALUE : (timeWeight * normalizedTimeResults.get(TaskDestination.MOBILE) + batteryWeight * normalizedBatteryResults.get(TaskDestination.MOBILE));
+        double cloudResult = (Double.MAX_VALUE == normalizedTimeResults.get(TaskDestination.CLOUD) || Double.MAX_VALUE == normalizedBatteryResults.get(TaskDestination.CLOUD))
+                ? Double.MAX_VALUE : (timeWeight * normalizedTimeResults.get(TaskDestination.CLOUD) + batteryWeight * normalizedBatteryResults.get(TaskDestination.CLOUD));
+        double dockerResult = (Double.MAX_VALUE == normalizedTimeResults.get(TaskDestination.DOCKER) || Double.MAX_VALUE == normalizedBatteryResults.get(TaskDestination.DOCKER))
+                ? Double.MAX_VALUE : (timeWeight * normalizedTimeResults.get(TaskDestination.DOCKER) + batteryWeight * normalizedBatteryResults.get(TaskDestination.DOCKER));
 
         // equals result
         if (BigDecimal.valueOf(cloudResult).equals(BigDecimal.valueOf(mobileResult)) &&
@@ -149,6 +152,9 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
             if (Double.MAX_VALUE != entry.getValue() && maxValue < entry.getValue()) {
                 maxValue = entry.getValue();
             }
+        }
+        if (maxValue == 0.0) {
+            maxValue = 1.0;
         }
         for (Map.Entry<TaskDestination, Double> entry : unnormalizedResults.entrySet()) {
             if (Double.MAX_VALUE != entry.getValue()) {
