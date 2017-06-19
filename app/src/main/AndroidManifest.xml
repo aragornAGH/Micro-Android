@@ -22,8 +22,8 @@
         android:largeHeap="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.ExampleService" />
-        <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.TestAgentService" />
+        <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.SimpleServiceIntentService" />
+        <service android:name="pl.edu.agh.jkolodziej.micro.agent.service.TestsIntentService" />
 
         <activity android:name="pl.edu.agh.jkolodziej.micro.agent.act.MainActivity">
             <intent-filter>

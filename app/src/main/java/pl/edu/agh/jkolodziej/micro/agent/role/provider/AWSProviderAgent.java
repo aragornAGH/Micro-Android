@@ -14,29 +14,29 @@ import java.util.Map;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
-import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
+import pl.edu.agh.jkolodziej.micro.agent.intents.PNGToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ServiceIntent;
 
 /**
  * @author - Jakub Kołodziej
  */
 
-public class AWSProviderRole extends DefaultSocialRole {
+public class AWSProviderAgent extends DefaultSocialRole {
 
     private static final Map<Class<?>, String> CLASS_INTENT_MAP = Maps.newHashMap();
 
     static {
         CLASS_INTENT_MAP.put(AddIntent.class, "addIntent");
         CLASS_INTENT_MAP.put(AddingFromFileIntent.class, "addingFromFileIntent");
-        CLASS_INTENT_MAP.put(ConvertPngToPDFIntent.class, "convertingPNGToPDF");
+        CLASS_INTENT_MAP.put(PNGToPDFIntent.class, "convertingPNGToPDF");
         CLASS_INTENT_MAP.put(OCRIntent.class, "OCR");
 
     }
 
     private final Context context;
 
-    public AWSProviderRole(Context context) {
+    public AWSProviderAgent(Context context) {
         this.context = context;
     }
 

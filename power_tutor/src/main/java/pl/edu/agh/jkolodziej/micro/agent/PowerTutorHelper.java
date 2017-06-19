@@ -22,4 +22,10 @@ public class PowerTutorHelper {
                 batteryState - startingBatteryLevel);
         return percentageUsageOfbattery;
     }
+
+    public static double getUsageOfBattery(Context context, long startingBatteryLevel) {
+        PowerTutorFacade powerTutorFacade = PowerTutorFacade.getInstance(context, "energy");
+        long batteryState = powerTutorFacade.getTotalPowerForUid();
+        return batteryState - startingBatteryLevel;
+    }
 }

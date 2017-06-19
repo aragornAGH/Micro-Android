@@ -1,6 +1,10 @@
 package pl.edu.agh.jkolodziej.micro.agent.helpers;
 
 import java.io.File;
+import java.util.List;
+
+import pl.edu.agh.jkolodziej.micro.agent.test.ActionFactory;
+import pl.edu.agh.jkolodziej.micro.weka.test.action.Action;
 
 /**
  * @author - Jakub Kołodziej
@@ -20,6 +24,8 @@ public class TestSettings {
 
     public static int ROUND_AMOUNT = 8;
     public static int SERIES_AMOUNT = 10;
+
+    public static List<Action> SERVICES = ActionFactory.getTestActions();
 
     public static File RESULT_WRITER_FILE = new File(AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/result_time5_bat5_values_neuron.csv");
 

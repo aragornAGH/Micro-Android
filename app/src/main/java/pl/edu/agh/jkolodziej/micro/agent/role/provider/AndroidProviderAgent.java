@@ -3,7 +3,7 @@ package pl.edu.agh.jkolodziej.micro.agent.role.provider;
 import org.nzdis.micro.MicroMessage;
 
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
-import pl.edu.agh.jkolodziej.micro.agent.roles.ProviderRole;
+import pl.edu.agh.jkolodziej.micro.agent.roles.ProviderAgent;
 import pl.edu.agh.jkolodziej.micro.agent.wrapper.AndroidOCRWrapper;
 
 /**
@@ -12,9 +12,9 @@ import pl.edu.agh.jkolodziej.micro.agent.wrapper.AndroidOCRWrapper;
  *         eg. OCR
  */
 
-public class AndroidProviderRole extends ProviderRole {
+public class AndroidProviderAgent extends ProviderAgent {
 
-    public AndroidProviderRole(String workerName) {
+    public AndroidProviderAgent(String workerName) {
         super(workerName);
     }
 

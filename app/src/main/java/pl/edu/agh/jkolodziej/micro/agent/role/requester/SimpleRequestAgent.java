@@ -23,8 +23,8 @@ import pl.edu.agh.jkolodziej.micro.agent.helpers.CipherDataHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.ConnectionTypeHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.IntentParametersHelper;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
-import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
+import pl.edu.agh.jkolodziej.micro.agent.intents.PNGToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ServiceIntent;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
 
@@ -32,19 +32,19 @@ import pl.edu.agh.mm.energy.PowerTutorFacade;
  * @author Jakub Kołodziej
  */
 
-public class FromFileIntentRequestRole extends DefaultSocialRole {
+public class SimpleRequestAgent extends DefaultSocialRole {
     private static final Map<Class, IntentType> CLASS_INTENT_MAP = Maps.newHashMap();
 
     static {
         CLASS_INTENT_MAP.put(AddingFromFileIntent.class, IntentType.ADDING_FROM_FILE);
-        CLASS_INTENT_MAP.put(ConvertPngToPDFIntent.class, IntentType.PNG_TO_PDF);
+        CLASS_INTENT_MAP.put(PNGToPDFIntent.class, IntentType.PNG_TO_PDF);
         CLASS_INTENT_MAP.put(OCRIntent.class, IntentType.OCR);
     }
 
     protected final Context mContext;
     protected byte[] bytes;
 
-    public FromFileIntentRequestRole(Context mContext) {
+    public SimpleRequestAgent(Context mContext) {
         this.mContext = mContext;
     }
 
@@ -82,7 +82,7 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
     }
 
     public void startPNGToPDF() throws Exception {
-        setDataAndSendMessage(new ConvertPngToPDFIntent(), TaskType.PNG_TO_PDF);
+        setDataAndSendMessage(new PNGToPDFIntent(), TaskType.PNG_TO_PDF);
     }
 
     public void startOCR() throws Exception {
@@ -100,7 +100,7 @@ public class FromFileIntentRequestRole extends DefaultSocialRole {
         responseToClient.putExtra("worker", worker);
         responseToClient.putExtra("result", result);
         responseToClient.putExtra("duration", System.currentTimeMillis() - intent.getStartTime());
-        responseToClient.putExtra("batteryPercentage", PowerTutorHelper.getPercentageUsageOfBattery(mContext, intent.getStartBattery()));
+        responseToClient.putExtra("batteryPercentage", PowerTutorHelper.getUsageOfBattery(mContext, intent.getStartBattery()));
         responseToClient.putExtra("intentType", CLASS_INTENT_MAP.get(message.getIntent().getClass()));
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(responseToClient);
     }

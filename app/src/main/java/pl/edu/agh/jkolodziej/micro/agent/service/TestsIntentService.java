@@ -31,8 +31,7 @@ import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.ConnectionTypeHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.ImageRawIdHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings;
-import pl.edu.agh.jkolodziej.micro.agent.role.requester.FromFileIntentWekaRequestRole;
-import pl.edu.agh.jkolodziej.micro.agent.test.ActionFactory;
+import pl.edu.agh.jkolodziej.micro.agent.role.requester.ManagementAgent;
 import pl.edu.agh.jkolodziej.micro.weka.ExecutionPredictorFactory;
 import pl.edu.agh.jkolodziej.micro.weka.KnowledgeInstanceManagerFactory;
 import pl.edu.agh.jkolodziej.micro.weka.managers.KnowledgeInstanceManager;
@@ -54,15 +53,15 @@ import static pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings.SERIES_AMOU
 /**
  * @author - Jakub Kołodziej
  */
-public class TestAgentService extends IntentService {
+public class TestsIntentService extends IntentService {
 
-    public static FromFileIntentWekaRequestRole fromFileClient = null;
+    public static ManagementAgent fromFileClient = null;
     private final TestsConfiguration testsConfiguration;
     private static ExecutionPredictor executionPredictor;
     private static TestsContext testsContext;
 
 
-    public TestAgentService() {
+    public TestsIntentService() {
         this("AGENT_TEST_SERVICE");
     }
 
@@ -71,7 +70,7 @@ public class TestAgentService extends IntentService {
      *
      * @param name Used to name the worker thread, important only for debugging.
      */
-    public TestAgentService(String name) {
+    public TestsIntentService(String name) {
         super(name);
         testsConfiguration = makeTestConfiguration();
         this.executionPredictor = createExecutionPredictor();
@@ -92,8 +91,8 @@ public class TestAgentService extends IntentService {
     }
 
     private TestsConfiguration makeTestConfiguration() {
-        List<Action> actions = ActionFactory.getTestActions();
-
+//        List<Action> actions = ActionFactory.getTestActions();
+        List<Action> actions = TestSettings.SERVICES;
         return new TestsConfiguration.Builder().setTestDirectory(new File(
                 AndroidFilesSaverHelper.INTERNAL_DIRECTORY + "/result.csv"))
                 .setSeries(SERIES_AMOUNT)
@@ -106,7 +105,7 @@ public class TestAgentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (fromFileClient == null) {
-            fromFileClient = new FromFileIntentWekaRequestRole(this, testsContext);
+            fromFileClient = new ManagementAgent(this, testsContext);
             SystemAgentLoader.newAgent(fromFileClient, "requester-android-from-file-test");
         }
 
@@ -118,10 +117,8 @@ public class TestAgentService extends IntentService {
     }
 
     private void setBytesFromFile(String fileName) {
-//        ClassLoader classLoader = MicroConfigLoader.class.getClassLoader();
         InputStream stream = getApplicationContext().getResources()
                 .openRawResource(ImageRawIdHelper.getRawId(fileName));
-//        InputStream stream = classLoader.getResourceAsStream("ocr/" + fileName);
         try {
             fromFileClient.setBytes(ByteStreams.toByteArray(stream));
         } catch (Exception e) {
@@ -289,8 +286,8 @@ public class TestAgentService extends IntentService {
 
     private void executeOcr(TestsContext testsContext, SingleTest singleTest, ExecutionPredictor executionPredictor) throws Exception {
         setBytesFromFile(singleTest.getFileName());
-        fromFileClient.startOCR(executionPredictor, singleTest);
-        while (FromFileIntentWekaRequestRole.isBusy()) {
+        fromFileClient.startService(executionPredictor, singleTest);
+        while (ManagementAgent.isBusy()) {
 //            Thread.sleep(1000);
         }
 //        execute(testsContext);

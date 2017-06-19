@@ -48,9 +48,8 @@ import pl.edu.agh.jkolodziej.micro.agent.enums.Action;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.AndroidFilesSaverHelper;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.OCRHelper;
-import pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings;
-import pl.edu.agh.jkolodziej.micro.agent.service.ExampleService;
-import pl.edu.agh.jkolodziej.micro.agent.service.TestAgentService;
+import pl.edu.agh.jkolodziej.micro.agent.service.SimpleServiceIntentService;
+import pl.edu.agh.jkolodziej.micro.agent.service.TestsIntentService;
 import pl.edu.agh.jkolodziej.micro.weka.test.action.SingleTest;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
 
@@ -170,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                 if (providerRun) {
                     Toast.makeText(getApplicationContext(), "Provider jest już uruchomiony ;-)", Toast.LENGTH_SHORT).show();
                 } else {
-                    Intent intent = new Intent(MainActivity.this, ExampleService.class);
+                    Intent intent = new Intent(MainActivity.this, SimpleServiceIntentService.class);
                     intent.putExtra("action", Action.RUN_PROVIDER);
                     startService(intent);
                 }
@@ -208,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
                     // LambdaDataBinder
                     myInterface = factory.build(LambdaInterface.class);
 
-                    Intent intent = new Intent(MainActivity.this, ExampleService.class);
+                    Intent intent = new Intent(MainActivity.this, SimpleServiceIntentService.class);
                     intent.putExtra("action", Action.RUN_AWS_PROVIDER);
                     startService(intent);
                 }
@@ -220,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 IntentType intentType = (IntentType) spinner.getSelectedItem();
-                Intent intent = new Intent(MainActivity.this, ExampleService.class);
+                Intent intent = new Intent(MainActivity.this, SimpleServiceIntentService.class);
                 intent.putExtra("action", Action.RUN_CLIENT);
                 intent.putExtra("intentType", intentType);
                 if (IntentType.ADDING == intentType) {
@@ -239,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
         testButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, TestAgentService.class);
+                Intent intent = new Intent(MainActivity.this, TestsIntentService.class);
                 startService(intent);
             }
         });
@@ -272,21 +271,6 @@ public class MainActivity extends AppCompatActivity {
                     .setCancelable(false)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-//                            try {
-//                                if (test.getConnectionType() == ConnectionTypeHelper.getConnectionType(getApplicationContext())) {
-                            TestSettings.INTERNET_CONNECTION_NEED_TO_CHANGE = false;
-//                                } else {
-//                                    runTestInValidateConnectionType(mContext, test);
-//                                }
-//                            } catch (ParserConfigurationException e) {
-//                                e.printStackTrace();
-//                            } catch (SAXException e) {
-//                                e.printStackTrace();
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            } catch (Exception e) {
-//                                e.printStackTrace();
-//                            }
                         }
                     })
                     .create();
@@ -326,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
             Boolean provAWSRun = intent.getBooleanExtra("provider_aws_run", false);
 
             // AWSLambda
-            if (!AWSLambdaRequester.requestIfNeeded(intent, myInterface, mContext, (ListView) findViewById(R.id.listView))) {
+            if (!AWSLambdaRequester.makeRequest(intent, myInterface, mContext, (ListView) findViewById(R.id.listView))) {
                 if (provRun) {
                     Toast.makeText(mContext, "Provider wystartował ;-)", Toast.LENGTH_SHORT).show();
                     providerRun = true;
@@ -336,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(mContext, intentType + " - " + worker + " - " + result + " " + miliSeconds + "ms; battery " +
                             batteryPercentage + "%", Toast.LENGTH_SHORT).show();
-                    results.add(intentType + " - " + worker + " - " + miliSeconds + "ms; battery: " + batteryPercentage + "%");
+                    results.add(intentType + " - " + worker + " - " + miliSeconds + "ms; battery: " + batteryPercentage + "mJ");
                     ListView list = (ListView) findViewById(R.id.listView);
                     adapter = new ArrayAdapter<String>(mContext, R.layout.row_list_view, results);
                     list.setAdapter(adapter);

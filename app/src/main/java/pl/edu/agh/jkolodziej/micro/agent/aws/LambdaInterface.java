@@ -5,8 +5,8 @@ import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunction;
 
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
-import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
+import pl.edu.agh.jkolodziej.micro.agent.intents.PNGToPDFIntent;
 
 /**
  * @author - Jakub Kołodziej
@@ -25,7 +25,7 @@ public interface LambdaInterface {
     AddingFromFileIntent handleRequest(AddingFromFileIntent intent);
 
     @LambdaFunction(functionName = "convertPNGToPDF")
-    ConvertPngToPDFIntent handleRequest(ConvertPngToPDFIntent intent);
+    PNGToPDFIntent handleRequest(PNGToPDFIntent intent);
 
     @LambdaFunction(functionName = "OCR")
     OCRIntent handleRequest(OCRIntent intent);

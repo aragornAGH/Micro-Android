@@ -15,45 +15,45 @@ import java.io.InputStream;
 import pl.edu.agh.jkolodziej.micro.agent.act.MainActivity;
 import pl.edu.agh.jkolodziej.micro.agent.enums.Action;
 import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
-import pl.edu.agh.jkolodziej.micro.agent.role.provider.AWSProviderRole;
-import pl.edu.agh.jkolodziej.micro.agent.role.provider.AndroidProviderRole;
+import pl.edu.agh.jkolodziej.micro.agent.role.provider.AWSProviderAgent;
+import pl.edu.agh.jkolodziej.micro.agent.role.provider.AndroidProviderAgent;
 import pl.edu.agh.jkolodziej.micro.agent.role.requester.AddIntentRequestRole;
-import pl.edu.agh.jkolodziej.micro.agent.role.requester.FromFileIntentRequestRole;
+import pl.edu.agh.jkolodziej.micro.agent.role.requester.SimpleRequestAgent;
 
 /**
  * @author - Jakub Kołodziej
  */
 
-public class ExampleService extends IntentService {
+public class SimpleServiceIntentService extends IntentService {
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
      * @param name Used to name the worker thread, important only for debugging.
      */
-    public ExampleService(String name) {
+    public SimpleServiceIntentService(String name) {
         super(name);
     }
 
-    public ExampleService() {
+    public SimpleServiceIntentService() {
         super("SERVICE");
     }
 
     public static AddIntentRequestRole addingClient = null;
-    public static FromFileIntentRequestRole fromFileClient = null;
+    public static SimpleRequestAgent simpleAgent = null;
 
     @Override
     protected void onHandleIntent(Intent intent) {
         Action action = (Action) intent.getSerializableExtra("action");
         IntentType intentType = (IntentType) intent.getSerializableExtra("intentType");
         if (Action.RUN_PROVIDER == action) {
-            SystemAgentLoader.newAgent(new AndroidProviderRole("android"), "android");
+            SystemAgentLoader.newAgent(new AndroidProviderAgent("android"), "android");
             Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
             responseToClient.putExtra("provider_run", true);
             LocalBroadcastManager.getInstance(this).sendBroadcast(responseToClient);
         } else if (Action.RUN_CLIENT == action) {
             makeClientAction(intentType, intent);
         } else if (Action.RUN_AWS_PROVIDER == action) {
-            SystemAgentLoader.newAgent(new AWSProviderRole(this), "AWS");
+            SystemAgentLoader.newAgent(new AWSProviderAgent(this), "AWS");
             Intent responseToClient = new Intent(MainActivity.ResponseFromServiceReceiver.RESPONSE);
             responseToClient.putExtra("provider_aws_run", true);
             LocalBroadcastManager.getInstance(this).sendBroadcast(responseToClient);
@@ -75,17 +75,17 @@ public class ExampleService extends IntentService {
                 addingClient.start();
                 break;
             case ADDING_FROM_FILE:
-                if (fromFileClient == null) {
-                    fromFileClient = new FromFileIntentRequestRole(this);
-                    SystemAgentLoader.newAgent(fromFileClient, "requester-android-from-file");
+                if (simpleAgent == null) {
+                    simpleAgent = new SimpleRequestAgent(this);
+                    SystemAgentLoader.newAgent(simpleAgent, "requester-android-from-file");
                 }
                 classLoader = MicroConfigLoader.class.getClassLoader();
                 stream = classLoader.getResourceAsStream("add/test1.add");
                 try {
                     bytes = new byte[stream.available()];
                     stream.read(bytes);
-                    fromFileClient.setBytes(bytes);
-                    fromFileClient.startAddingFromFile();
+                    simpleAgent.setBytes(bytes);
+                    simpleAgent.startAddingFromFile();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -99,15 +99,15 @@ public class ExampleService extends IntentService {
                 }
                 break;
             case PNG_TO_PDF:
-                if (fromFileClient == null) {
-                    fromFileClient = new FromFileIntentRequestRole(this);
-                    SystemAgentLoader.newAgent(fromFileClient, "requester-android-from-file");
+                if (simpleAgent == null) {
+                    simpleAgent = new SimpleRequestAgent(this);
+                    SystemAgentLoader.newAgent(simpleAgent, "requester-android-from-file");
                 }
                 classLoader = MicroConfigLoader.class.getClassLoader();
                 stream = classLoader.getResourceAsStream("png/sample4.png");
                 try {
-                    fromFileClient.setBytes(ByteStreams.toByteArray(stream));
-                    fromFileClient.startPNGToPDF();
+                    simpleAgent.setBytes(ByteStreams.toByteArray(stream));
+                    simpleAgent.startPNGToPDF();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -121,16 +121,16 @@ public class ExampleService extends IntentService {
                 }
                 break;
             case OCR:
-                if (fromFileClient == null) {
-                    fromFileClient = new FromFileIntentRequestRole(this);
-                    SystemAgentLoader.newAgent(fromFileClient, "requester-android-from-file");
+                if (simpleAgent == null) {
+                    simpleAgent = new SimpleRequestAgent(this);
+                    SystemAgentLoader.newAgent(simpleAgent, "requester-android-from-file");
                 }
                 classLoader = MicroConfigLoader.class.getClassLoader();
                 String fileName = intent.getStringExtra("fileName");
                 stream = classLoader.getResourceAsStream("ocr/" + fileName);
                 try {
-                    fromFileClient.setBytes(ByteStreams.toByteArray(stream));
-                    fromFileClient.startOCR();
+                    simpleAgent.setBytes(ByteStreams.toByteArray(stream));
+                    simpleAgent.startOCR();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {

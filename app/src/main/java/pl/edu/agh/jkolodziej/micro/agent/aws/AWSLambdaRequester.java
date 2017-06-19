@@ -25,10 +25,10 @@ import pl.edu.agh.jkolodziej.micro.agent.enums.IntentType;
 import pl.edu.agh.jkolodziej.micro.agent.helpers.TestSettings;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.AddingFromFileIntent;
-import pl.edu.agh.jkolodziej.micro.agent.intents.ConvertPngToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.OCRIntent;
+import pl.edu.agh.jkolodziej.micro.agent.intents.PNGToPDFIntent;
 import pl.edu.agh.jkolodziej.micro.agent.intents.ServiceIntent;
-import pl.edu.agh.jkolodziej.micro.agent.role.requester.FromFileIntentWekaRequestRole;
+import pl.edu.agh.jkolodziej.micro.agent.role.requester.ManagementAgent;
 import pl.edu.agh.jkolodziej.micro.weka.params.LearningParameters;
 import pl.edu.agh.jkolodziej.micro.weka.test.Measurement;
 import pl.edu.agh.mm.energy.PowerTutorFacade;
@@ -40,7 +40,7 @@ import pl.edu.agh.mm.energy.PowerTutorFacade;
 public class AWSLambdaRequester {
     private static ServiceIntent serviceIntent = null;
 
-    public static boolean requestIfNeeded(final Intent intent, final LambdaInterface myInterface, final Context mContext, final ListView list) {
+    public static boolean makeRequest(final Intent intent, final LambdaInterface myInterface, final Context mContext, final ListView list) {
 
         if (intent.getSerializableExtra("addIntent") != null) {
             AddIntent addIntent = (AddIntent) intent.getSerializableExtra("addIntent");
@@ -82,11 +82,11 @@ public class AWSLambdaRequester {
             }.execute(addingFromFileIntent);
             return true;
         } else if (intent.getSerializableExtra("convertingPNGToPDF") != null) {
-            ConvertPngToPDFIntent convertPNGToPDFIntent = (ConvertPngToPDFIntent) intent.getSerializableExtra("convertingPNGToPDF");
+            PNGToPDFIntent convertPNGToPDFIntent = (PNGToPDFIntent) intent.getSerializableExtra("convertingPNGToPDF");
             serviceIntent = convertPNGToPDFIntent;
-            new AsyncTask<ConvertPngToPDFIntent, Void, ConvertPngToPDFIntent>() {
+            new AsyncTask<PNGToPDFIntent, Void, PNGToPDFIntent>() {
                 @Override
-                protected ConvertPngToPDFIntent doInBackground(ConvertPngToPDFIntent... params) {
+                protected PNGToPDFIntent doInBackground(PNGToPDFIntent... params) {
                     try {
                         return myInterface.handleRequest(params[0]);
                     } catch (LambdaFunctionException lfe) {
@@ -95,7 +95,7 @@ public class AWSLambdaRequester {
                 }
 
                 @Override
-                protected void onPostExecute(ConvertPngToPDFIntent result) {
+                protected void onPostExecute(PNGToPDFIntent result) {
                     AWSLambdaRequester.onPostExecute(intent, serviceIntent, result, mContext, IntentType.PNG_TO_PDF, list);
                 }
             }.execute(convertPNGToPDFIntent);
@@ -145,7 +145,7 @@ public class AWSLambdaRequester {
             double percentageUsageOfbattery = BatteryUtils.getPercentageUsageOfBattery(mContext, voltage,
                     batteryState - serviceIntent.getStartBattery());
 
-            FromFileIntentWekaRequestRole.testsContext.appendResult(params,
+            ManagementAgent.testsContext.appendResult(params,
                     new Measurement.Result(false, endTime - serviceIntent.getStartTime(),
                             batteryState - serviceIntent.getStartBattery(),
                             percentageUsageOfbattery,
@@ -160,7 +160,7 @@ public class AWSLambdaRequester {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            FromFileIntentWekaRequestRole.IS_BUSY = false;
+            ManagementAgent.IS_BUSY = false;
         }
         Double batteryPercentage = PowerTutorHelper.getPercentageUsageOfBattery(mContext, result.getStartBattery());
         Toast.makeText(mContext, intentType + " - " + result.getWorker() + " - " + duration + " ms; battery: " + batteryPercentage + "%", Toast.LENGTH_SHORT).show();

@@ -36,12 +36,12 @@ import pl.edu.agh.mm.energy.PowerTutorFacade;
 /**
  * @author - Jakub Kołodziej
  */
-public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
+public class ManagementAgent extends SimpleRequestAgent {
 
     public static boolean IS_BUSY = false;
     public static TestsContext testsContext;
 
-    public FromFileIntentWekaRequestRole(Context mContext, TestsContext testsContext) {
+    public ManagementAgent(Context mContext, TestsContext testsContext) {
         super(mContext);
         this.testsContext = testsContext;
     }
@@ -83,7 +83,6 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
                 : predictor.getTaskDestination(learningParameters, TestSettings.TIME_WEIGHT, TestSettings.BATTERY_WEIGHT);
         intent.setTaskDestination(taskDestination);
 
-        message.setRecipient(DestinationMapper.getAgentNameByDestination(taskDestination));
 
         Logger.getAnonymousLogger().log(Level.INFO, "CHOOSE DESTINATION(" + bytes.length + "b): "
                 + taskDestination.name() + "->" + message.getRecipient());
@@ -93,7 +92,7 @@ public class FromFileIntentWekaRequestRole extends FromFileIntentRequestRole {
         send(message);
     }
 
-    public void startOCR(ExecutionPredictor executionPredictor, SingleTest singleTest) throws Exception {
+    public void startService(ExecutionPredictor executionPredictor, SingleTest singleTest) throws Exception {
         setDataAndSendMessage(new OCRIntent(), TaskType.OCR, executionPredictor, singleTest);
     }
 
