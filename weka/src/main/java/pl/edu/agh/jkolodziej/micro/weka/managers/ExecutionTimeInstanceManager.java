@@ -27,7 +27,7 @@ public class ExecutionTimeInstanceManager extends AbstractKnowledgeInstanceManag
         Attribute resolution = new Attribute(WekaConstants.RESOLUTION);
 
         List<String> destinations = Arrays.asList(TaskDestination.MOBILE.name(),
-                TaskDestination.DOCKER.name(), TaskDestination.CLOUD.name());
+                TaskDestination.PC.name(), TaskDestination.CLOUD.name());
         Attribute destination = new Attribute(WekaConstants.DESTINATION, destinations);
 
         List<String> connectionTypes = Arrays.asList(ConnectionType.NONE.name(), ConnectionType.CDMA_2G.name(),

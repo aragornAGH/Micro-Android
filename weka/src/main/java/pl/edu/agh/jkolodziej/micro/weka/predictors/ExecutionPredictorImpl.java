@@ -45,7 +45,7 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
             taskDestinations.add(TaskDestination.CLOUD);
         }
         if (ConnectionType.WIFI == params.getConnectionType()) {
-            taskDestinations.add(TaskDestination.DOCKER);
+            taskDestinations.add(TaskDestination.PC);
         }
         taskDestinations.add(TaskDestination.MOBILE);
 
@@ -66,10 +66,10 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
             cloudTimeResult = getTimeResult(params, TaskDestination.CLOUD.name());
         }
         unnormalizedTimeResults.put(TaskDestination.CLOUD, cloudTimeResult);
-        if (taskDestinations.contains(TaskDestination.DOCKER)) {
-            dockerTimeResult = getTimeResult(params, TaskDestination.DOCKER.name());
+        if (taskDestinations.contains(TaskDestination.PC)) {
+            dockerTimeResult = getTimeResult(params, TaskDestination.PC.name());
         }
-        unnormalizedTimeResults.put(TaskDestination.DOCKER, dockerTimeResult);
+        unnormalizedTimeResults.put(TaskDestination.PC, dockerTimeResult);
 
         Map<TaskDestination, Double> unnormalizedBatteryResults = Maps.newHashMap();
 
@@ -83,10 +83,10 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
             cloudBatteryResult = getBatteryResult(params, TaskDestination.CLOUD.name());
         }
         unnormalizedBatteryResults.put(TaskDestination.CLOUD, cloudBatteryResult);
-        if (taskDestinations.contains(TaskDestination.DOCKER)) {
-            dockerBatteryResult = getBatteryResult(params, TaskDestination.DOCKER.name());
+        if (taskDestinations.contains(TaskDestination.PC)) {
+            dockerBatteryResult = getBatteryResult(params, TaskDestination.PC.name());
         }
-        unnormalizedBatteryResults.put(TaskDestination.DOCKER, dockerBatteryResult);
+        unnormalizedBatteryResults.put(TaskDestination.PC, dockerBatteryResult);
 
         Map<TaskDestination, Double> normalizedBatteryResults = normalizeResults(unnormalizedBatteryResults);
         Map<TaskDestination, Double> normalizedTimeResults = normalizeResults(unnormalizedTimeResults);
@@ -95,8 +95,8 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
                 ? Double.MAX_VALUE : (timeWeight * normalizedTimeResults.get(TaskDestination.MOBILE) + batteryWeight * normalizedBatteryResults.get(TaskDestination.MOBILE));
         double cloudResult = (Double.MAX_VALUE == normalizedTimeResults.get(TaskDestination.CLOUD) || Double.MAX_VALUE == normalizedBatteryResults.get(TaskDestination.CLOUD))
                 ? Double.MAX_VALUE : (timeWeight * normalizedTimeResults.get(TaskDestination.CLOUD) + batteryWeight * normalizedBatteryResults.get(TaskDestination.CLOUD));
-        double dockerResult = (Double.MAX_VALUE == normalizedTimeResults.get(TaskDestination.DOCKER) || Double.MAX_VALUE == normalizedBatteryResults.get(TaskDestination.DOCKER))
-                ? Double.MAX_VALUE : (timeWeight * normalizedTimeResults.get(TaskDestination.DOCKER) + batteryWeight * normalizedBatteryResults.get(TaskDestination.DOCKER));
+        double dockerResult = (Double.MAX_VALUE == normalizedTimeResults.get(TaskDestination.PC) || Double.MAX_VALUE == normalizedBatteryResults.get(TaskDestination.PC))
+                ? Double.MAX_VALUE : (timeWeight * normalizedTimeResults.get(TaskDestination.PC) + batteryWeight * normalizedBatteryResults.get(TaskDestination.PC));
 
         // equals result
         if (BigDecimal.valueOf(cloudResult).equals(BigDecimal.valueOf(mobileResult)) &&
@@ -112,20 +112,20 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
                     return random.nextBoolean() ? TaskDestination.CLOUD : TaskDestination.MOBILE;
                     // cloud && docker the best
                 } else if (cloudResult < mobileResult && BigDecimal.valueOf(cloudResult).equals(BigDecimal.valueOf(dockerResult))) {
-                    return random.nextBoolean() ? TaskDestination.CLOUD : TaskDestination.DOCKER;
+                    return random.nextBoolean() ? TaskDestination.CLOUD : TaskDestination.PC;
                 }
             }
 
             if (BigDecimal.valueOf(Math.min(cloudResult, Math.min(dockerResult, mobileResult))).equals(BigDecimal.valueOf(dockerResult))) {
                 // docket the best
                 if (dockerResult < cloudResult && dockerResult < mobileResult) {
-                    return TaskDestination.DOCKER;
+                    return TaskDestination.PC;
                     // docker && mobile the best
                 } else if (dockerResult < cloudResult && BigDecimal.valueOf(dockerResult).equals(BigDecimal.valueOf(mobileResult))) {
-                    return random.nextBoolean() ? TaskDestination.DOCKER : TaskDestination.MOBILE;
+                    return random.nextBoolean() ? TaskDestination.PC : TaskDestination.MOBILE;
                     // docker && cloud the best
                 } else if (dockerResult < mobileResult && BigDecimal.valueOf(dockerResult).equals(BigDecimal.valueOf(cloudResult))) {
-                    return random.nextBoolean() ? TaskDestination.DOCKER : TaskDestination.CLOUD;
+                    return random.nextBoolean() ? TaskDestination.PC : TaskDestination.CLOUD;
                 }
             }
 
@@ -136,7 +136,7 @@ public class ExecutionPredictorImpl implements ExecutionPredictor<LearningParame
                     return TaskDestination.MOBILE;
                     // mobile && docker the best
                 } else if (mobileResult < cloudResult && BigDecimal.valueOf(mobileResult).equals(BigDecimal.valueOf(dockerResult))) {
-                    return random.nextBoolean() ? TaskDestination.MOBILE : TaskDestination.DOCKER;
+                    return random.nextBoolean() ? TaskDestination.MOBILE : TaskDestination.PC;
                     // mobile && cloud the best
                 } else if (mobileResult < dockerResult && BigDecimal.valueOf(mobileResult).equals(BigDecimal.valueOf(cloudResult))) {
                     return random.nextBoolean() ? TaskDestination.MOBILE : TaskDestination.CLOUD;
