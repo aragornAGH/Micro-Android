@@ -183,33 +183,34 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (providerAWSRun) {
                     Toast.makeText(getApplicationContext(), "Provider AWS jest już uruchomiony ;-)", Toast.LENGTH_SHORT).show();
-                }
-                if (!providerRun) {
-                    Toast.makeText(getApplicationContext(), "Najpierw uruchom Android Providera", Toast.LENGTH_LONG).show();
                 } else {
-                    // Create an instance of CognitoCachingCredentialsProvider
-                    credentialsProvider = new CognitoCachingCredentialsProvider(
-                            getApplicationContext(),
-                            MTRuntime.aws_identity_pool,
-                            Regions.valueOf(MTRuntime.aws_region));
+                    if (!providerRun) {
+                        Toast.makeText(getApplicationContext(), "Najpierw uruchom Android Providera", Toast.LENGTH_LONG).show();
+                    } else {
+                        // Create an instance of CognitoCachingCredentialsProvider
+                        credentialsProvider = new CognitoCachingCredentialsProvider(
+                                getApplicationContext(),
+                                MTRuntime.aws_identity_pool,
+                                Regions.valueOf(MTRuntime.aws_region));
 
-                    ClientConfiguration cc = new ClientConfiguration();
-                    cc.setSocketTimeout(0);
+                        ClientConfiguration cc = new ClientConfiguration();
+                        cc.setSocketTimeout(0);
 
-                    // Create a LambdaInvokerFactory, to be used to instantiate the Lambda proxy
-                    factory = new LambdaInvokerFactory(
-                            getApplicationContext(),
-                            Regions.valueOf(MTRuntime.aws_region),
-                            credentialsProvider, cc);
+                        // Create a LambdaInvokerFactory, to be used to instantiate the Lambda proxy
+                        factory = new LambdaInvokerFactory(
+                                getApplicationContext(),
+                                Regions.valueOf(MTRuntime.aws_region),
+                                credentialsProvider, cc);
 
-                    // Create the Lambda proxy object with default Json data binder.
-                    // You can provide your own data binder by implementing
-                    // LambdaDataBinder
-                    myInterface = factory.build(LambdaInterface.class);
+                        // Create the Lambda proxy object with default Json data binder.
+                        // You can provide your own data binder by implementing
+                        // LambdaDataBinder
+                        myInterface = factory.build(LambdaInterface.class);
 
-                    Intent intent = new Intent(MainActivity.this, SimpleServiceIntentService.class);
-                    intent.putExtra("action", Action.RUN_AWS_PROVIDER);
-                    startService(intent);
+                        Intent intent = new Intent(MainActivity.this, SimpleServiceIntentService.class);
+                        intent.putExtra("action", Action.RUN_AWS_PROVIDER);
+                        startService(intent);
+                    }
                 }
             }
         });
